@@ -1,25 +1,10 @@
 import { weddingData } from '@/lib/data';
-import { generateRomanticSubtitle } from '@/ai/flows/generate-romantic-subtitle';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MoveDown } from 'lucide-react';
-
-async function RomanticSubtitle() {
-  try {
-    const { subtitle } = await generateRomanticSubtitle({
-      groomName: weddingData.groomName,
-      brideName: weddingData.brideName,
-    });
-    return <p className="font-body text-xl md:text-2xl text-primary mt-4 animate-pulse-slow">{subtitle}</p>;
-  } catch (error) {
-    console.error("Failed to generate subtitle:", error);
-    return <p className="font-body text-xl md:text-2xl text-primary mt-4">Juntos, escrevendo um novo capítulo</p>;
-  }
-}
+import { RomanticSubtitle } from './romantic-subtitle';
 
 export function Hero() {
-  const initials = `${weddingData.brideName.charAt(0)} & ${weddingData.groomName.charAt(0)}`;
-
   return (
     <section className="py-24 md:py-20 flex flex-col items-center justify-center min-h-[70vh]">
       <h2 className="font-headline text-lg md:text-xl text-primary/80 tracking-widest uppercase">Juntam-se em matrimônio</h2>

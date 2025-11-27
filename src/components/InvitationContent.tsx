@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MapPin, ChevronsDown, Volume2, VolumeX, Gift, ExternalLink, Check, X } from 'lucide-react';
+import { MapPin, ChevronsDown, Volume2, VolumeX, Gift, ExternalLink, Check, X, User, Users, Baby } from 'lucide-react';
 import { WeddingSettings } from '../../types';
 import { addRSVP } from '../services/storageService';
 
@@ -21,6 +21,9 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
     firstName: '',
     lastName: '',
     phone: '',
+    hasSpouse: 'no' as 'yes' | 'no',
+    hasChildren: 'no' as 'yes' | 'no',
+    childrenCount: 0,
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -74,7 +77,13 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
     e.preventDefault();
     if (!formData.firstName || !formData.lastName || !formData.phone) return;
 
-    addRSVP({ ...formData, hasTransport: false });
+    const rsvpData = {
+      ...formData,
+      hasSpouse: formData.hasSpouse === 'yes',
+      hasChildren: formData.hasChildren === 'yes',
+    };
+
+    addRSVP(rsvpData);
     setIsSubmitted(true);
     
     setTimeout(() => {
@@ -82,9 +91,30 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
       // Reset form after a delay to allow for closing animation
       setTimeout(() => {
         setIsSubmitted(false);
-        setFormData({ firstName: '', lastName: '', phone: '' });
+        setFormData({
+            firstName: '',
+            lastName: '',
+            phone: '',
+            hasSpouse: 'no',
+            hasChildren: 'no',
+            childrenCount: 0,
+        });
       }, 500);
     }, 2500);
+  };
+  
+  // Handle radio button changes
+  const handleRadioChange = (field: 'hasSpouse' | 'hasChildren', value: 'yes' | 'no') => {
+    setFormData(prev => {
+        const newState = { ...prev, [field]: value };
+        if (field === 'hasChildren' && value === 'no') {
+            newState.childrenCount = 0; // Reset children count if they are not bringing children
+        }
+        if (field === 'hasChildren' && value === 'yes' && newState.childrenCount === 0) {
+            newState.childrenCount = 1; // Default to 1 if they are bringing children
+        }
+        return newState;
+    });
   };
 
   return (
@@ -290,7 +320,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
              {isRsvpOpen ? 'Fechar' : 'Confirmar Presença'}
            </button>
 
-           <div className={`transition-all duration-500 ease-in-out overflow-hidden w-full max-w-md ${isRsvpOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+           <div className={`transition-all duration-500 ease-in-out overflow-hidden w-full max-w-lg ${isRsvpOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
               <div className="bg-paper/80 backdrop-blur-sm mt-4 w-full mx-auto rounded-lg shadow-2xl p-6 sm:p-8 border border-gold/30">
                 <div className="relative z-10 text-center">
                   {isSubmitted ? (
@@ -302,7 +332,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                       <p className="font-sans text-sm text-ink/60 mt-2">Nos vemos no grande dia.</p>
                     </div>
                   ) : (
-                    <form onSubmit={handleRsvpSubmit} className="space-y-4 text-left">
+                    <form onSubmit={handleRsvpSubmit} className="space-y-6 text-left">
                        <h2 className="font-serif text-2xl sm:text-3xl text-gold-dark mb-2 text-center">Confirmação de Presença</h2>
                        <p className="font-sans text-xs text-ink/60 uppercase tracking-widest mb-6 text-center">Por favor, preencha seus dados</p>
                       <div>
@@ -338,6 +368,59 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                           placeholder="(00) 00000-0000"
                         />
                       </div>
+                      
+                      <div className="space-y-3 pt-2">
+                        <label className="block font-serif text-ink">Você vai acompanhado do seu cônjuge?</label>
+                        <div className="flex gap-4">
+                           <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleRadioChange('hasSpouse', 'yes')}>
+                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.hasSpouse === 'yes' ? 'border-gold' : 'border-ink/30'}`}>
+                               {formData.hasSpouse === 'yes' && <div className="w-2.5 h-2.5 rounded-full bg-gold"></div>}
+                             </div>
+                             <span className="font-sans text-ink">Sim</span>
+                           </div>
+                           <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleRadioChange('hasSpouse', 'no')}>
+                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.hasSpouse === 'no' ? 'border-gold' : 'border-ink/30'}`}>
+                               {formData.hasSpouse === 'no' && <div className="w-2.5 h-2.5 rounded-full bg-gold"></div>}
+                             </div>
+                             <span className="font-sans text-ink">Não</span>
+                           </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 pt-2">
+                        <label className="block font-serif text-ink">Você pretende levar seu filhos?</label>
+                        <div className="flex gap-4">
+                           <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleRadioChange('hasChildren', 'yes')}>
+                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.hasChildren === 'yes' ? 'border-gold' : 'border-ink/30'}`}>
+                               {formData.hasChildren === 'yes' && <div className="w-2.5 h-2.5 rounded-full bg-gold"></div>}
+                             </div>
+                             <span className="font-sans text-ink">Sim</span>
+                           </div>
+                           <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleRadioChange('hasChildren', 'no')}>
+                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.hasChildren === 'no' ? 'border-gold' : 'border-ink/30'}`}>
+                               {formData.hasChildren === 'no' && <div className="w-2.5 h-2.5 rounded-full bg-gold"></div>}
+                             </div>
+                             <span className="font-sans text-ink">Não</span>
+                           </div>
+                        </div>
+                      </div>
+
+                      {formData.hasChildren === 'yes' && (
+                         <div className="space-y-2 pt-2 transition-all duration-300 animate-fade-in">
+                            <label className="block font-serif text-ink">Quantos filhos?</label>
+                            <select
+                              value={formData.childrenCount}
+                              onChange={e => setFormData({...formData, childrenCount: parseInt(e.target.value)})}
+                              className="w-full bg-white/50 border-b border-gold/30 focus:border-gold outline-none py-2 px-1 font-sans text-ink"
+                            >
+                              <option value={1}>1</option>
+                              <option value={2}>2</option>
+                              <option value={3}>3</option>
+                              <option value={4}>4</option>
+                              <option value={5}>5</option>
+                            </select>
+                         </div>
+                      )}
                       
                       <button 
                         type="submit"

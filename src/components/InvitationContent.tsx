@@ -370,7 +370,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                       </div>
                       
                       <div className="space-y-3 pt-2">
-                        <label className="block font-serif text-ink">Você vai acompanhado do seu cônjuge?</label>
+                        <label className="block font-serif text-ink">Você vai acompanhado do seu cônjuge? (esposa ou esposo)</label>
                         <div className="flex gap-4">
                            <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleRadioChange('hasSpouse', 'yes')}>
                              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.hasSpouse === 'yes' ? 'border-gold' : 'border-ink/30'}`}>

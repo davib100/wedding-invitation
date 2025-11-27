@@ -51,9 +51,53 @@ export const Envelope: React.FC<EnvelopeProps> = ({ onOpen }) => {
               zIndex: flapFullyOpen ? 25 : 15
             }}
           >
-            <div className="text-center opacity-80 mt-10 p-4">
-              <p className="font-serif text-gold-dark text-[10px] sm:text-xs tracking-[0.2em] uppercase mb-2">Convite de Casamento</p>
-              <h1 className="font-script text-3xl sm:text-4xl text-ink">R & D</h1>
+             <div className="relative w-48 h-48 md:w-56 md:h-56 -mt-8 opacity-80">
+              <svg className="w-full h-full" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="luxuryGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#BF953F" />
+                    <stop offset="25%" stopColor="#FCF6BA" />
+                    <stop offset="50%" stopColor="#B38728" />
+                    <stop offset="75%" stopColor="#FBF5B7" />
+                    <stop offset="100%" stopColor="#AA771C" />
+                  </linearGradient>
+                  <filter id="goldEmboss" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur"/>
+                    <feSpecularLighting in="blur" surfaceScale="2" specularConstant="0.8" specularExponent="15" lightingColor="#FFF" result="specOut">
+                      <fePointLight x="-5000" y="-10000" z="20000"/>
+                    </feSpecularLighting>
+                    <feComposite in="specOut" in2="SourceAlpha" operator="in" result="specOut"/>
+                    <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litPaint"/>
+                     <feDropShadow dx="0.5" dy="1" stdDeviation="1" floodColor="#3e2b06" floodOpacity="0.3"/>
+                  </filter>
+                </defs>
+
+                <g filter="url(#goldEmboss)">
+                  <circle cx="200" cy="200" r="130" fill="none" stroke="url(#luxuryGold)" strokeWidth="1" />
+                  <circle cx="200" cy="200" r="122" fill="none" stroke="url(#luxuryGold)" strokeWidth="3" strokeDasharray="1, 8" strokeLinecap="round" />
+                  <line x1="152" y1="260" x2="248" y2="140" stroke="url(#luxuryGold)" strokeWidth="1.5" strokeLinecap="square" />
+                </g>
+
+                <g>
+                  <text x="145" y="190" 
+                        textAnchor="middle" 
+                        dominantBaseline="middle"
+                        fill="url(#luxuryGold)" 
+                        style={{ fontStyle: 'italic', fontFamily: '"Times New Roman", serif', fontSize: '100px', fontWeight: '400', letterSpacing: '-2px' }}
+                        filter="url(#goldEmboss)">
+                    R
+                  </text>
+
+                  <text x="255" y="220" 
+                        textAnchor="middle" 
+                        dominantBaseline="middle"
+                        fill="url(#luxuryGold)" 
+                        style={{ fontStyle: 'italic', fontFamily: '"Times New Roman", serif', fontSize: '100px', fontWeight: '400', letterSpacing: '-2px' }}
+                        filter="url(#goldEmboss)">
+                    D
+                  </text>
+                </g>
+              </svg>
             </div>
           </div>
 
@@ -102,7 +146,7 @@ export const Envelope: React.FC<EnvelopeProps> = ({ onOpen }) => {
       </div>
       
       {!isOpen && (
-        <div className="absolute bottom-20 text-center px-4 text-black font-sans tracking-widest animate-pulse text-sm md:text-base font-semibold drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)]">
+        <div className="absolute bottom-10 md:bottom-20 text-center px-4 text-black font-sans tracking-widest animate-pulse text-sm md:text-base font-semibold drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)]">
           TOQUE NO SELO PARA ABRIR
         </div>
       )}

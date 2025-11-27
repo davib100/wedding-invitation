@@ -73,7 +73,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
       <div className="fixed inset-2 md:inset-4 border border-gold/30 pointer-events-none z-30 rounded-sm"></div>
       <div className="fixed inset-3 md:inset-6 border border-gold/10 pointer-events-none z-30 rounded-sm"></div>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 md:py-20 flex flex-col items-center text-center space-y-16 relative z-10">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 md:py-20 flex flex-col items-center text-center space-y-12 md:space-y-16 relative z-10">
         
           <div className="relative group cursor-default pt-6">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 md:w-40 md:h-40 bg-[#D4AF37] blur-[80px] opacity-20 rounded-full pointer-events-none"></div>
@@ -164,14 +164,14 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                { val: timeLeft.seconds, label: 'Seg' }
              ].map((item, idx) => (
                <div key={idx} className="flex flex-col items-center p-2 border border-gold/10 bg-white/40 rounded-sm">
-                 <span className="font-serif text-xl md:text-3xl font-semibold">{item.val}</span>
+                 <span className="font-serif text-xl md:text-3xl font-semibold">{String(item.val).padStart(2, '0')}</span>
                  <span className="text-[9px] md:text-[10px] uppercase tracking-widest opacity-70">{item.label}</span>
                </div>
              ))}
            </div>
         </section>
 
-        <section className="space-y-2 w-full">
+        <section className="space-y-2 w-full pt-4 md:pt-8">
            <h3 className="font-serif text-2xl md:text-3xl text-gold-dark border-b border-gold/20 pb-2 inline-block px-8">
              A Celebração
            </h3>
@@ -197,7 +197,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
            </div>
         </section>
 
-        <section className="w-full">
+        <section className="w-full pt-4 md:pt-8">
           <div className="relative w-full h-64 md:h-80 bg-paper-dark p-2 shadow-inner border border-gold/20 rotate-1 transition-transform hover:rotate-0 duration-500 rounded-sm">
              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gold text-white p-2 rounded-full shadow-lg z-10">
                <MapPin size={20} />
@@ -225,7 +225,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
           </div>
         </section>
 
-        <section className="w-full max-w-4xl mx-auto text-center bg-paper/90 backdrop-blur-sm border-2 border-gold/30 rounded-lg p-6 md:p-10">
+        <section className="w-full max-w-4xl mx-auto text-center bg-paper/90 backdrop-blur-sm border-2 border-gold/30 rounded-lg p-6 md:p-10 mt-8 md:mt-12">
             <div className="flex justify-center mb-6 text-gold">
               <Gift size={36} />
             </div>

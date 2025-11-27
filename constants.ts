@@ -12,7 +12,7 @@ export const INITIAL_SETTINGS: WeddingSettings = {
   musicUrl: 'https://cdn.pixabay.com/audio/2022/02/07/audio_1947b74447.mp3', // Romantic Piano royalty free
   heroImageUrl: 'https://picsum.photos/800/1200?grayscale',
   introText: 'Com a bênção de Deus e de nossos pais',
-  inviteText: 'Convidam para a cerimônia religiosa e recepção de seu casamento.',
+  inviteText: 'Convidam para a cerimônia religiosa de seu casamento.',
   thankYouText: 'Sua presença tornará este dia ainda mais especial.',
 };
 

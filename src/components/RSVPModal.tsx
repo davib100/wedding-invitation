@@ -26,7 +26,7 @@ export const RSVPModal: React.FC<RSVPModalProps> = ({ isOpen, onClose }) => {
     }
   }, [isOpen, isSubmitted]);
 
-  if (!isOpen && !isSubmitted) return null;
+  if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

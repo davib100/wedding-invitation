@@ -1,18 +1,30 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MapPin, ChevronsDown, Volume2, VolumeX, Gift, ExternalLink } from 'lucide-react';
+import { MapPin, ChevronsDown, Volume2, VolumeX, Gift, ExternalLink, Check, X } from 'lucide-react';
 import { WeddingSettings } from '../../types';
+import { addRSVP } from '../services/storageService';
+
 
 interface InvitationContentProps {
   settings: WeddingSettings;
-  onOpenRSVP: () => void;
   onFooterClick: () => void;
 }
 
-export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, onOpenRSVP, onFooterClick }) => {
+export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, onFooterClick }) => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isPlaying, setIsPlaying] = useState(true);
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const [footerClicks, setFooterClicks] = useState(0);
+  const [isRsvpOpen, setIsRsvpOpen] = useState(false);
+
+  // RSVP Form State
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    hasTransport: false
+  });
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
 
   const initials = useMemo(() => {
     const groomInitial = settings.groomName ? settings.groomName.trim().charAt(0).toUpperCase() : 'R';
@@ -58,6 +70,23 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
     }, 1000);
     return () => clearInterval(interval);
   }, [settings.eventDate]);
+
+  const handleRsvpSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.firstName || !formData.lastName || !formData.phone) return;
+
+    addRSVP(formData);
+    setIsSubmitted(true);
+    
+    setTimeout(() => {
+      setIsRsvpOpen(false);
+      // Reset form after a delay to allow for closing animation
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormData({ firstName: '', lastName: '', phone: '', hasTransport: false });
+      }, 500);
+    }, 2500);
+  };
 
   return (
     <div className="relative w-full min-h-screen bg-paper bg-paper-texture overflow-y-auto animate-fade-in">
@@ -254,13 +283,82 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
            </p>
         </section>
 
-        <div className="sticky bottom-6 z-40 pb-6 w-full flex justify-center">
+        <div className="sticky bottom-6 z-20 pb-6 w-full flex flex-col items-center gap-4">
            <button 
-             onClick={onOpenRSVP}
+             onClick={() => setIsRsvpOpen(!isRsvpOpen)}
              className="bg-gold hover:bg-gold-dark text-white font-serif text-base md:text-lg px-8 py-3 md:px-10 md:py-4 rounded-full shadow-[0_4px_20px_rgba(212,175,55,0.4)] transition-all duration-300 hover:scale-105 hover:shadow-[0_6px_25px_rgba(212,175,55,0.6)] tracking-widest uppercase flex items-center gap-2"
            >
-             Confirmar Presença
+             {isRsvpOpen ? 'Fechar' : 'Confirmar Presença'}
            </button>
+
+           <div className={`transition-all duration-500 ease-in-out overflow-hidden w-full max-w-md ${isRsvpOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+              <div className="bg-paper/80 backdrop-blur-sm mt-4 w-full mx-auto rounded-lg shadow-2xl p-6 sm:p-8 border border-gold/30">
+                <div className="relative z-10 text-center">
+                  {isSubmitted ? (
+                    <div className="py-10 flex flex-col items-center animate-fade-in">
+                      <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4 text-green-600">
+                        <Check size={32} />
+                      </div>
+                      <p className="font-serif text-xl text-ink">Confirmado com sucesso!</p>
+                      <p className="font-sans text-sm text-ink/60 mt-2">Nos vemos no grande dia.</p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleRsvpSubmit} className="space-y-4 text-left">
+                       <h2 className="font-serif text-2xl sm:text-3xl text-gold-dark mb-2 text-center">Confirmação de Presença</h2>
+                       <p className="font-sans text-xs text-ink/60 uppercase tracking-widest mb-6 text-center">Por favor, preencha seus dados</p>
+                      <div>
+                        <label className="block font-serif text-ink mb-1">Nome</label>
+                        <input 
+                          type="text" 
+                          required
+                          value={formData.firstName}
+                          onChange={e => setFormData({...formData, firstName: e.target.value})}
+                          className="w-full bg-white/50 border-b border-gold/30 focus:border-gold outline-none py-2 px-1 font-sans text-ink transition-colors placeholder:text-ink/30"
+                          placeholder="Seu primeiro nome"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-serif text-ink mb-1">Sobrenome</label>
+                        <input 
+                          type="text" 
+                          required
+                          value={formData.lastName}
+                          onChange={e => setFormData({...formData, lastName: e.target.value})}
+                          className="w-full bg-white/50 border-b border-gold/30 focus:border-gold outline-none py-2 px-1 font-sans text-ink transition-colors placeholder:text-ink/30"
+                          placeholder="Seu sobrenome"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-serif text-ink mb-1">Telefone (WhatsApp)</label>
+                        <input 
+                          type="tel" 
+                          required
+                          value={formData.phone}
+                          onChange={e => setFormData({...formData, phone: e.target.value})}
+                          className="w-full bg-white/50 border-b border-gold/30 focus:border-gold outline-none py-2 px-1 font-sans text-ink transition-colors placeholder:text-ink/30"
+                          placeholder="(00) 00000-0000"
+                        />
+                      </div>
+                      
+                      <div className="pt-2 flex items-center gap-3 cursor-pointer select-none" onClick={() => setFormData({...formData, hasTransport: !formData.hasTransport})}>
+                        <div className={`w-5 h-5 border border-gold flex items-center justify-center transition-colors shrink-0 ${formData.hasTransport ? 'bg-gold' : 'bg-transparent'}`}>
+                          {formData.hasTransport && <Check size={14} className="text-white" />}
+                        </div>
+                        <span className="font-serif text-ink text-sm sm:text-base">Utilizarei o transporte do evento (Van)</span>
+                      </div>
+
+                      <button 
+                        type="submit"
+                        className="w-full mt-6 bg-gold text-white font-serif tracking-widest uppercase py-3 hover:bg-gold-dark transition-all duration-300 shadow-md active:scale-95"
+                      >
+                        Confirmar
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </div>
+           </div>
+
         </div>
 
         <footer className="w-full pt-10 pb-6 opacity-40">

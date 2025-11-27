@@ -12,12 +12,22 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isPlaying, setIsPlaying] = useState(true);
   const audioRef = React.useRef<HTMLAudioElement>(null);
+  const [footerClicks, setFooterClicks] = useState(0);
 
   const initials = useMemo(() => {
     const groomInitial = settings.groomName ? settings.groomName.trim().charAt(0).toUpperCase() : 'R';
     const brideInitial = settings.brideName ? settings.brideName.trim().charAt(0).toUpperCase() : 'D';
     return { groom: groomInitial, bride: brideInitial };
   }, [settings.groomName, settings.brideName]);
+
+  const handleFooterClick = () => {
+    const newClickCount = footerClicks + 1;
+    setFooterClicks(newClickCount);
+    if (newClickCount >= 5) {
+      onFooterClick();
+      setFooterClicks(0); // Reset after opening
+    }
+  };
 
   useEffect(() => {
     if (audioRef.current) {
@@ -254,7 +264,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
 
         <footer className="w-full pt-10 pb-6 opacity-40">
            <p 
-             onClick={onFooterClick}
+             onClick={handleFooterClick}
              className="font-sans text-[10px] tracking-widest text-ink/40 cursor-pointer select-none hover:text-ink hover:underline transition-colors duration-300"
            >
              POWERED BY ZAZZILABS

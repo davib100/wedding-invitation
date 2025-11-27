@@ -17,18 +17,16 @@ export const RSVPModal: React.FC<RSVPModalProps> = ({ isOpen, onClose }) => {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.classList.add('overflow-hidden');
-    } else {
-      document.body.classList.remove('overflow-hidden');
+    // When the form is submitted, we reset the form fields after the success message is shown.
+    if (!isOpen && isSubmitted) {
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormData({ firstName: '', lastName: '', phone: '', hasTransport: false });
+      }, 500); // Delay matches the closing animation
     }
+  }, [isOpen, isSubmitted]);
 
-    return () => {
-      document.body.classList.remove('overflow-hidden');
-    };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
+  if (!isOpen && !isSubmitted) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,14 +37,14 @@ export const RSVPModal: React.FC<RSVPModalProps> = ({ isOpen, onClose }) => {
     
     setTimeout(() => {
       onClose();
-      setIsSubmitted(false);
-      setFormData({ firstName: '', lastName: '', phone: '', hasTransport: false });
     }, 2500);
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-paper relative w-full max-w-md rounded-lg shadow-2xl p-6 sm:p-8 border border-gold/30">
+    <div 
+      className={`fixed top-0 left-0 right-0 z-[60] p-4 transition-transform duration-500 ease-in-out ${isOpen ? 'translate-y-0' : '-translate-y-full'}`}
+    >
+      <div className="bg-paper relative w-full max-w-md mx-auto rounded-lg shadow-2xl p-6 sm:p-8 border border-gold/30">
         <div className="absolute inset-0 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')] opacity-50 rounded-lg"></div>
         
         <button 

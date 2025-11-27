@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from 'zod';
-import { rsvpList } from '@/lib/data';
+import { rsvpList } from './data';
 
 const RsvpSchema = z.object({
   name: z.string().min(2, { message: "Por favor, insira seu nome." }),

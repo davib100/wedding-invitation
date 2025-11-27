@@ -1,7 +1,7 @@
 import type {Config} from 'tailwindcss';
 
 export default {
-  darkMode: ['class'],
+  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -10,8 +10,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['"PT Sans"', 'sans-serif'],
-        headline: ['"Playfair Display"', 'serif'],
+        body: ['"PT Sans"', 'Montserrat', 'sans-serif'],
+        headline: ['"Playfair Display"', 'Cormorant Garamond', 'serif'],
+        serif: ['"Cormorant Garamond"', 'serif'],
+        script: ['"Great Vibes"', 'cursive'],
+        sans: ['Montserrat', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -65,38 +68,59 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        // Cores do convite
+        paper: '#fdfbf7',
+        'paper-dark': '#e8e4da',
+        gold: '#D4AF37',
+        'gold-dark': '#AA8C2C',
+        'wax-red': '#8a1c1c',
+        'wax-red-light': '#a62e2e',
+        ink: '#2c2c2c',
+        'ink-light': '#4a4a4a',
+        ivory: '#fffff0',
+        burgundy: '#6b2737',
+        'rose-gold': '#b76e79',
+      },
+      backgroundImage: {
+        'paper-texture': "url('https://www.transparenttextures.com/patterns/cream-paper.png')",
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      perspective: {
+        '1000': '1000px',
+        '2000': '2000px',
+      },
       keyframes: {
         'accordion-down': {
-          from: {
-            height: '0',
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)',
-          },
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
         },
         'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-          to: {
-            height: '0',
-          },
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
         },
         'zoom-in-content': {
           '0%': { opacity: '0', transform: 'scale(0.95)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'fade-in': {
+          from: { opacity: '0', transform: 'scale(0.95)' },
+          to: { opacity: '1', transform: 'scale(1)' },
+        },
+        'slide-up': {
+          from: { transform: 'translateY(40px)', opacity: '0' },
+          to: { transform: 'translateY(0)', opacity: '1' },
         },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'zoom-in-content': 'zoom-in-content 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'fade-in': 'fade-in 1s ease-out forwards',
+        'slide-up': 'slide-up 1s ease-out forwards',
       },
     },
   },

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MapPin, ChevronUp, Volume2, VolumeX, Gift, ExternalLink } from 'lucide-react';
+import { MapPin, ChevronsDown, Volume2, VolumeX, Gift, ExternalLink } from 'lucide-react';
 import { WeddingSettings } from '../../types';
 
 interface InvitationContentProps {
@@ -72,6 +72,11 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
 
       <div className="fixed inset-2 md:inset-4 border border-gold/30 pointer-events-none z-30 rounded-sm"></div>
       <div className="fixed inset-3 md:inset-6 border border-gold/10 pointer-events-none z-30 rounded-sm"></div>
+      
+      <div className="fixed right-4 top-1/2 -translate-y-1/2 flex flex-col items-center text-gold-dark/60 animate-swipe-down z-30">
+        <ChevronsDown size={24} />
+      </div>
+
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 md:py-20 flex flex-col items-center text-center space-y-12 md:space-y-16 relative z-10">
         
@@ -142,10 +147,6 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
             </h1>
           </div>
           
-          <div className="flex flex-col items-center gap-2 text-gold-dark/60 animate-bounce delay-1000">
-             <span className="text-[10px] tracking-[0.3em] uppercase">Role para baixo</span>
-             <ChevronUp size={16} />
-          </div>
         </header>
 
         <section className="space-y-6 max-w-lg mx-auto">

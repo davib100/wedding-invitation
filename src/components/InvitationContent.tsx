@@ -21,7 +21,6 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
     firstName: '',
     lastName: '',
     phone: '',
-    hasTransport: false
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -75,7 +74,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
     e.preventDefault();
     if (!formData.firstName || !formData.lastName || !formData.phone) return;
 
-    addRSVP(formData);
+    addRSVP({ ...formData, hasTransport: false });
     setIsSubmitted(true);
     
     setTimeout(() => {
@@ -83,7 +82,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
       // Reset form after a delay to allow for closing animation
       setTimeout(() => {
         setIsSubmitted(false);
-        setFormData({ firstName: '', lastName: '', phone: '', hasTransport: false });
+        setFormData({ firstName: '', lastName: '', phone: '' });
       }, 500);
     }, 2500);
   };
@@ -340,13 +339,6 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                         />
                       </div>
                       
-                      <div className="pt-2 flex items-center gap-3 cursor-pointer select-none" onClick={() => setFormData({...formData, hasTransport: !formData.hasTransport})}>
-                        <div className={`w-5 h-5 border border-gold flex items-center justify-center transition-colors shrink-0 ${formData.hasTransport ? 'bg-gold' : 'bg-transparent'}`}>
-                          {formData.hasTransport && <Check size={14} className="text-white" />}
-                        </div>
-                        <span className="font-serif text-ink text-sm sm:text-base">Utilizarei o transporte do evento (Van)</span>
-                      </div>
-
                       <button 
                         type="submit"
                         className="w-full mt-6 bg-gold text-white font-serif tracking-widest uppercase py-3 hover:bg-gold-dark transition-all duration-300 shadow-md active:scale-95"

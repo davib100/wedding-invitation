@@ -65,7 +65,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
 
       <button 
         onClick={() => setIsPlaying(!isPlaying)}
-        className="fixed top-4 right-4 md:top-6 md:right-6 z-40 w-10 h-10 rounded-full bg-gold/20 backdrop-blur-sm border border-gold flex items-center justify-center text-gold-dark hover:bg-gold hover:text-white transition-all duration-300"
+        className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-gold/20 backdrop-blur-sm border border-gold flex items-center justify-center text-gold-dark hover:bg-gold hover:text-white transition-all duration-300"
       >
         {isPlaying ? <Volume2 size={18} className="animate-pulse" /> : <VolumeX size={18} />}
       </button>
@@ -73,7 +73,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
       <div className="fixed inset-2 md:inset-4 border border-gold/30 pointer-events-none z-30 rounded-sm"></div>
       <div className="fixed inset-3 md:inset-6 border border-gold/10 pointer-events-none z-30 rounded-sm"></div>
       
-      <div className="fixed left-1/2 -translate-x-1/2 top-16 flex flex-col items-center text-gold-dark/60 animate-bounce z-30">
+      <div className="fixed top-4 right-4 md:top-6 md:right-6 flex flex-col items-center text-gold-dark/60 animate-bounce z-30">
         <ChevronsDown size={24} />
       </div>
 

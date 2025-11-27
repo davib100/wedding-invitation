@@ -73,7 +73,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
       <div className="fixed inset-2 md:inset-4 border border-gold/30 pointer-events-none z-30 rounded-sm"></div>
       <div className="fixed inset-3 md:inset-6 border border-gold/10 pointer-events-none z-30 rounded-sm"></div>
       
-      <div className="fixed right-4 top-1/2 -translate-y-1/2 flex flex-col items-center text-gold-dark/60 animate-swipe-down z-30">
+      <div className="fixed left-1/2 -translate-x-1/2 top-16 flex flex-col items-center text-gold-dark/60 animate-bounce z-30">
         <ChevronsDown size={24} />
       </div>
 

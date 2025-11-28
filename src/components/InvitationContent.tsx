@@ -202,7 +202,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
           </div>
 
         <header className="space-y-4 animate-slide-up w-full">
-          <p className="font-serif italic text-ink/70 text-base md:text-lg tracking-wide">
+          <p className="font-serif italic text-ink/70 text-lg md:text-xl tracking-wide">
             {settings.introText}
           </p>
           

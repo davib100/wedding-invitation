@@ -146,7 +146,7 @@ export const Envelope: React.FC<EnvelopeProps> = ({ onOpen }) => {
       </div>
       
       {!isOpen && (
-        <div className="absolute bottom-10 md:bottom-20 text-center px-4 text-black font-sans tracking-widest animate-pulse text-sm md:text-base font-semibold drop-shadow-[0_2px_4px_rgba(255,255,255,0.8)]">
+        <div className="absolute bottom-10 md:bottom-20 text-center px-4 text-white/70 font-sans tracking-widest animate-pulse text-sm md:text-base font-semibold drop-shadow-lg">
           TOQUE NO SELO PARA ABRIR
         </div>
       )}

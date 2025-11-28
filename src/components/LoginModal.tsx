@@ -4,6 +4,8 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { X } from 'lucide-react';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { initializeFirebase } from '../firebase';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -12,18 +14,25 @@ interface LoginModalProps {
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock authentication
-    if (username === 'admin' && password === 'password') {
-      setError('');
+    setError('');
+
+    try {
+      const { auth } = initializeFirebase();
+      await signInWithEmailAndPassword(auth, email, password);
       onLoginSuccess();
-    } else {
-      setError('Usuário ou senha inválidos');
+    } catch (error: any) {
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+        setError('Usuário ou senha inválidos.');
+      } else {
+        setError('Ocorreu um erro ao fazer login.');
+        console.error(error);
+      }
     }
   };
 
@@ -40,12 +49,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
         <h2 className="font-serif text-3xl text-gold-dark mb-6 text-center">Admin Login</h2>
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="username" className="font-serif text-ink">Usuário</Label>
+            <Label htmlFor="email" className="font-serif text-ink">Email</Label>
             <Input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-white/50 border-b border-gold/30 focus:border-gold outline-none py-2 px-1 font-sans text-ink transition-colors placeholder:text-ink/30"
               required
             />

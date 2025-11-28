@@ -12,7 +12,7 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       .eq('id', SETTINGS_ID)
       .single();
 
-    if (error && status !== 406) {
+    if (error && status !== 406) { // 406 means no rows found, which is not an error here
       console.error('Error fetching settings:', error);
       throw error;
     }
@@ -20,7 +20,8 @@ export const getSettings = async (): Promise<WeddingSettings> => {
     if (data) {
       return data as WeddingSettings;
     } else {
-      // If no settings exist, create them with initial values.
+      // If no settings row exists, create it with initial values.
+      // This happens on the very first run against a new database.
       const { data: newData, error: insertError } = await supabase
         .from('settings')
         .insert({ ...INITIAL_SETTINGS, id: SETTINGS_ID })
@@ -29,13 +30,15 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       
       if (insertError) {
         console.error('Error creating initial settings:', insertError);
+        // This will likely fail if the table doesn't exist, so we fall back.
         throw insertError;
       }
+      // Successfully created the initial settings row.
       return newData as WeddingSettings;
     }
   } catch (error) {
-    console.error('Error in getSettings, returning initial settings:', error);
-    // Return default settings for UI to function
+    console.error('Error in getSettings, returning initial settings as fallback:', error);
+    // Return default settings for the UI to function if db operations fail.
     return INITIAL_SETTINGS;
   }
 };

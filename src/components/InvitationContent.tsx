@@ -9,6 +9,22 @@ interface InvitationContentProps {
   onFooterClick: () => void;
 }
 
+const MapView = React.memo(({ mapUrl }: { mapUrl: string }) => {
+  if (!mapUrl) return null;
+  return (
+    <iframe
+      src={mapUrl}
+      width="100%"
+      height="100%"
+      style={{ border: 0 }}
+      allowFullScreen
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+      className="w-full h-full opacity-90 rounded-sm"
+    ></iframe>
+  );
+});
+
 export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, onFooterClick }) => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isPlaying, setIsPlaying] = useState(true);
@@ -254,7 +270,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                 <span className="text-base uppercase tracking-[0.2em] text-ink/60">
                   {new Date(settings.eventDate).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
                 </span>
-                <span className="font-serif italic text-2xl md:text-3xl mt-2">
+                <span className="font-serif italic text-2xl md:text-4xl mt-2">
                    às {new Date(settings.eventDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </span>
              </div>
@@ -270,18 +286,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gold text-white p-2 rounded-full shadow-lg z-10">
                <MapPin size={20} />
              </div>
-             {settings.mapUrl && (
-              <iframe
-                src={settings.mapUrl}
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                className="w-full h-full opacity-90 rounded-sm"
-              ></iframe>
-            )}
+            <MapView mapUrl={settings.mapUrl} />
           </div>
           <div className="text-center mt-4">
              <a 

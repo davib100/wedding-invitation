@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, Autocomplete } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Loader2 } from 'lucide-react';
@@ -29,60 +29,51 @@ const MapSelector: React.FC<MapSelectorProps> = ({ onChange, initialAddress }) =
     libraries,
   });
 
-  const [map, setMap] = useState<google.maps.Map | null>(null);
   const [markerPosition, setMarkerPosition] = useState(initialCenter);
-  const [address, setAddress] = useState(initialAddress || '');
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [address, setAddress] = useState(initialAddress || 'Arraste o pino para selecionar o local.');
+  const geocoderRef = useRef<google.maps.Geocoder | null>(null);
 
-  const onMapLoad = useCallback((mapInstance: google.maps.Map) => {
-    setMap(mapInstance);
-    // If we have an initial address, geocode it
-    if (initialAddress) {
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ address: initialAddress }, (results, status) => {
+  useEffect(() => {
+    if (isLoaded) {
+      geocoderRef.current = new google.maps.Geocoder();
+      // If we have an initial address, geocode it to set the initial marker
+      if (initialAddress && geocoderRef.current) {
+        geocoderRef.current.geocode({ address: initialAddress }, (results, status) => {
             if (status === 'OK' && results && results[0]) {
                 const location = results[0].geometry.location;
                 setMarkerPosition({ lat: location.lat(), lng: location.lng() });
-                mapInstance.panTo(location);
             }
         });
-    }
-  }, [initialAddress]);
-
-  const onAutocompleteLoad = (autocomplete: google.maps.places.Autocomplete) => {
-    autocompleteRef.current = autocomplete;
-  };
-
-  const onPlaceChanged = () => {
-    if (autocompleteRef.current) {
-      const place = autocompleteRef.current.getPlace();
-      if (place.geometry && place.geometry.location) {
-        const location = place.geometry.location;
-        const newPosition = { lat: location.lat(), lng: location.lng() };
-        map?.panTo(newPosition);
-        setMarkerPosition(newPosition);
-        setAddress(place.formatted_address || '');
-        
-        const mapUrl = `https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(place.formatted_address || '')}`;
-        onChange({ address: place.formatted_address || '', mapUrl });
       }
     }
-  };
-  
-  const onMarkerDragEnd = (e: google.maps.MapMouseEvent) => {
-    if (e.latLng) {
-      const newPosition = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-      setMarkerPosition(newPosition);
-      
-      const geocoder = new google.maps.Geocoder();
-      geocoder.geocode({ location: newPosition }, (results, status) => {
+  }, [isLoaded, initialAddress]);
+
+  const handleLocationSelect = useCallback((latLng: google.maps.LatLng) => {
+    setMarkerPosition({ lat: latLng.lat(), lng: latLng.lng() });
+    
+    if (geocoderRef.current) {
+      geocoderRef.current.geocode({ location: latLng }, (results, status) => {
         if (status === 'OK' && results && results[0]) {
           const newAddress = results[0].formatted_address;
           setAddress(newAddress);
           const mapUrl = `https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(newAddress)}`;
           onChange({ address: newAddress, mapUrl });
+        } else {
+          setAddress('Endereço não encontrado para esta localização.');
         }
       });
+    }
+  }, [onChange]);
+  
+  const onMapClick = (e: google.maps.MapMouseEvent) => {
+    if (e.latLng) {
+      handleLocationSelect(e.latLng);
+    }
+  };
+
+  const onMarkerDragEnd = (e: google.maps.MapMouseEvent) => {
+    if (e.latLng) {
+      handleLocationSelect(e.latLng);
     }
   };
 
@@ -108,26 +99,14 @@ const MapSelector: React.FC<MapSelectorProps> = ({ onChange, initialAddress }) =
   return (
     <div className="space-y-4 pt-4">
       <div>
-        <Label htmlFor="location-search">Pesquisar Endereço</Label>
-        <Autocomplete
-          onLoad={onAutocompleteLoad}
-          onPlaceChanged={onPlaceChanged}
-        >
-          <Input
-            id="location-search"
-            type="text"
-            placeholder="Digite o endereço do evento"
-            defaultValue={initialAddress}
-            className="mt-1"
-          />
-        </Autocomplete>
-        <p className="text-xs text-ink/60 mt-2">Endereço selecionado: <span className="font-medium">{address}</span></p>
+        <Label>Localização no Mapa</Label>
+        <p className="text-xs text-ink/60 mt-1">Endereço selecionado: <span className="font-medium text-ink">{address}</span></p>
       </div>
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={markerPosition}
-        zoom={15}
-        onLoad={onMapLoad}
+        zoom={initialAddress ? 15 : 4} // Zoom out if no address is set initially
+        onClick={onMapClick}
       >
         <Marker 
             position={markerPosition} 
@@ -135,7 +114,7 @@ const MapSelector: React.FC<MapSelectorProps> = ({ onChange, initialAddress }) =
             onDragEnd={onMarkerDragEnd}
         />
       </GoogleMap>
-      <p className="text-xs text-center text-ink/50">Você pode arrastar o marcador para ajustar a localização exata.</p>
+      <p className="text-xs text-center text-ink/50">Clique no mapa para definir um local ou arraste o pino para ajustar.</p>
     </div>
   );
 };

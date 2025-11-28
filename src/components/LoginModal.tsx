@@ -29,7 +29,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
     } catch (error: any) {
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
         setError('Usuário ou senha inválidos.');
-      } else {
+      } else if (error.code === 'auth/api-key-not-valid') {
+        setError('Erro de configuração: A chave da API do Firebase não é válida.');
+        console.error("Please check your Firebase configuration in src/firebase/config.ts");
+      }
+      else {
         setError('Ocorreu um erro ao fazer login.');
         console.error(error);
       }

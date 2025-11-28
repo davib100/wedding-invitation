@@ -29,7 +29,8 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {
-        setIsAdminOpen(false); // Close admin panel on logout
+        // If user logs out, ensure admin panel is closed.
+        setIsAdminOpen(false);
       }
     });
 
@@ -37,6 +38,7 @@ function App() {
   }, []);
 
   const handleFooterTap = () => {
+    // This function decides whether to open the login modal or the admin panel
     if (user) {
       setIsAdminOpen(true);
     } else {
@@ -50,11 +52,13 @@ function App() {
 
   const handleLoginSuccess = () => {
     setIsLoginModalOpen(false);
+    // On successful login, we set the state to open the admin panel.
     setIsAdminOpen(true); 
   };
   
   const handleSettingsUpdate = () => {
-    fetchSettings(); // Re-fetch settings after they are updated
+    // This function is called from the AdminPanel to signal that settings have changed
+    fetchSettings(); // Re-fetch settings from Firestore to update the UI
   };
 
   if (!settings) {
@@ -76,14 +80,18 @@ function App() {
         />
       )}
 
-      {/* Login modal is always in the DOM, but visibility is controlled by isOpen */}
+      {/* Login modal is always present in the DOM but its visibility is toggled. */}
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
         onLoginSuccess={handleLoginSuccess}
       />
 
-      {/* AdminPanel is only rendered and loaded when a user is authenticated and it's meant to be open */}
+      {/* 
+        The AdminPanel is now conditionally rendered and lazy-loaded.
+        It will only be fetched and rendered if a user is logged in AND the isAdminOpen state is true.
+        This prevents it from loading on initial app start.
+      */}
       {user && isAdminOpen && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center"><p className="text-white font-serif">Carregando painel...</p></div>}>
           <AdminPanel

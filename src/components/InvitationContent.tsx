@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MapPin, ChevronsDown, Volume2, VolumeX, Gift, ExternalLink, Check, X, User, Users, Baby } from 'lucide-react';
+import { MapPin, ChevronsDown, Volume2, VolumeX, Gift, ExternalLink, Check } from 'lucide-react';
 import { WeddingSettings } from '../../types';
 import { addRSVP } from '../services/storageService';
 
@@ -30,8 +30,8 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
 
 
   const initials = useMemo(() => {
-    const groomInitial = settings.groomName ? settings.groomName.trim().charAt(0).toUpperCase() : 'R';
-    const brideInitial = settings.brideName ? settings.brideName.trim().charAt(0).toUpperCase() : 'D';
+    const groomInitial = settings.groomName ? settings.groomName.trim().charAt(0).toUpperCase() : 'G';
+    const brideInitial = settings.brideName ? settings.brideName.trim().charAt(0).toUpperCase() : 'B';
     return { groom: groomInitial, bride: brideInitial };
   }, [settings.groomName, settings.brideName]);
 
@@ -74,17 +74,19 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
     return () => clearInterval(interval);
   }, [settings.eventDate]);
 
-  const handleRsvpSubmit = (e: React.FormEvent) => {
+  const handleRsvpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.firstName || !formData.lastName || !formData.phone) return;
 
     const rsvpData = {
       ...formData,
       hasSpouse: formData.hasSpouse === 'yes',
+      spouseName: formData.hasSpouse === 'yes' ? formData.spouseName : '',
       hasChildren: formData.hasChildren === 'yes',
+      childrenCount: formData.hasChildren === 'yes' ? formData.childrenCount : 0,
     };
 
-    addRSVP(rsvpData);
+    await addRSVP(rsvpData);
     setIsSubmitted(true);
     
     setTimeout(() => {

@@ -1,36 +1,43 @@
 import { RSVP, WeddingSettings } from '../../types';
-import { INITIAL_SETTINGS, STORAGE_KEYS } from '../../constants';
+import { INITIAL_SETTINGS } from '../../constants';
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc } from 'firebase/firestore';
+import { initializeFirebase } from '../firebase';
 
-export const getSettings = (): WeddingSettings => {
-  const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-  if (!stored) return INITIAL_SETTINGS;
+// Ensures Firebase is initialized
+initializeFirebase();
+
+const db = getFirestore();
+const settingsDocRef = doc(db, 'wedding', 'settings');
+
+export const getSettings = async (): Promise<WeddingSettings> => {
   try {
-    return JSON.parse(stored);
-  } catch {
+    const docSnap = await getDoc(settingsDocRef);
+    if (docSnap.exists()) {
+      return docSnap.data() as WeddingSettings;
+    } else {
+      // If no settings exist in Firestore, save and return the initial settings
+      await setDoc(settingsDocRef, INITIAL_SETTINGS);
+      return INITIAL_SETTINGS;
+    }
+  } catch (error) {
+    console.error("Error fetching settings, returning initial settings:", error);
     return INITIAL_SETTINGS;
   }
 };
 
-export const saveSettings = (settings: WeddingSettings): void => {
-  localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+export const saveSettings = async (settings: WeddingSettings): Promise<void> => {
+  await setDoc(settingsDocRef, settings, { merge: true });
 };
 
-export const getRSVPs = (): RSVP[] => {
-  const stored = localStorage.getItem(STORAGE_KEYS.RSVP);
-  if (!stored) return [];
+export const addRSVP = async (rsvpData: Omit<RSVP, 'id' | 'confirmedAt'>): Promise<void> => {
   try {
-    return JSON.parse(stored);
-  } catch {
-    return [];
+    const rsvpCollection = collection(db, 'rsvps');
+    const newRSVP: Omit<RSVP, 'id'> = {
+      ...rsvpData,
+      confirmedAt: new Date().toISOString(),
+    };
+    await addDoc(rsvpCollection, newRSVP);
+  } catch (error) {
+    console.error("Error adding RSVP:", error);
   }
-};
-
-export const addRSVP = (rsvp: Omit<RSVP, 'id' | 'confirmedAt'>): void => {
-  const current = getRSVPs();
-  const newRSVP: RSVP = {
-    ...rsvp,
-    id: crypto.randomUUID(),
-    confirmedAt: new Date().toISOString(),
-  };
-  localStorage.setItem(STORAGE_KEYS.RSVP, JSON.stringify([...current, newRSVP]));
 };

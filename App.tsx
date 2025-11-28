@@ -12,11 +12,18 @@ function App() {
   const [hasOpenedEnvelope, setHasOpenedEnvelope] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [settings, setSettings] = useState<WeddingSettings>(getSettings());
+  const [settings, setSettings] = useState<WeddingSettings | null>(null);
   const [user, setUser] = useState<User | null>(null);
+
+  const fetchSettings = async () => {
+    const appSettings = await getSettings();
+    setSettings(appSettings);
+  };
 
   useEffect(() => {
     initializeFirebase();
+    fetchSettings();
+
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -29,12 +36,11 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-
   const handleFooterTap = () => {
     if (user) {
-        setIsAdminOpen(true);
+      setIsAdminOpen(true);
     } else {
-        setIsLoginModalOpen(true);
+      setIsLoginModalOpen(true);
     }
   };
 
@@ -45,10 +51,18 @@ function App() {
   const handleAdminClose = () => {
     setIsAdminOpen(false);
   };
-  
+
   const handleSettingsUpdate = () => {
-    setSettings(getSettings());
+    fetchSettings(); // Re-fetch settings after they are updated
   };
+
+  if (!settings) {
+    return (
+      <div className="w-full min-h-screen bg-black flex items-center justify-center">
+        <p className="text-white font-serif">Carregando convite...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen bg-black">
@@ -61,11 +75,13 @@ function App() {
         />
       )}
 
-      {!user && <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        onLoginSuccess={handleLoginSuccess}
-      />}
+      {!user && (
+        <LoginModal
+          isOpen={isLoginModalOpen}
+          onClose={() => setIsLoginModalOpen(false)}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      )}
 
       {user && isAdminOpen && (
         <AdminPanel

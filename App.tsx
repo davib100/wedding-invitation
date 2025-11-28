@@ -5,7 +5,7 @@ import { LoginModal } from './src/components/LoginModal';
 import { getSettings } from './src/services/storageService';
 import { WeddingSettings } from './types';
 import { auth } from './src/firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { INITIAL_SETTINGS } from './constants';
 
 const AdminPanel = lazy(() => import('./src/components/AdminPanel'));
@@ -14,28 +14,44 @@ function App() {
   const [hasOpenedEnvelope, setHasOpenedEnvelope] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  // Initialize with default settings for instant load
   const [settings, setSettings] = useState<WeddingSettings>(INITIAL_SETTINGS);
   const [user, setUser] = useState<User | null>(null);
 
-  // Fetch personalized settings from Firestore in the background
   const fetchSettings = async () => {
-    const appSettings = await getSettings();
-    if (appSettings) {
-      setSettings(appSettings);
+    try {
+      const appSettings = await getSettings();
+      if (appSettings) {
+        setSettings(appSettings);
+      }
+    } catch (error: any) {
+      if (error?.code === 'unavailable' || error?.message?.includes('offline')) {
+        console.log('App offline, using cached settings');
+      } else {
+        console.error('Error fetching settings, returning initial settings:', error);
+      }
     }
   };
 
   useEffect(() => {
-    fetchSettings(); // Fetch settings on initial load
+    fetchSettings();
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+      // Força o logout se a página for recarregada e um usuário persistido for encontrado.
+      // Apenas permite o estado do usuário se for definido por um login ativo.
+      if (currentUser && sessionStorage.getItem('isAdminLoggedIn') !== 'true') {
+        signOut(auth);
+        setUser(null);
+        setIsAdminOpen(false);
+      } else {
+        setUser(currentUser);
+      }
+
       if (!currentUser) {
+        sessionStorage.removeItem('isAdminLoggedIn');
         setIsAdminOpen(false);
       }
     });
-
+    
     return () => unsubscribe();
   }, []);
 
@@ -52,12 +68,12 @@ function App() {
   };
 
   const handleLoginSuccess = () => {
+    sessionStorage.setItem('isAdminLoggedIn', 'true');
     setIsLoginModalOpen(false);
     setIsAdminOpen(true); 
   };
   
   const handleSettingsUpdate = () => {
-    // Refetch settings after they have been updated in the admin panel
     fetchSettings();
   };
 

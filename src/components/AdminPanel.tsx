@@ -29,6 +29,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
   const [isLoading, setIsLoading] = useState(true);
 
   const handleLogout = async () => {
+    sessionStorage.removeItem('isAdminLoggedIn');
     await signOut(auth);
     onClose();
   };

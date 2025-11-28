@@ -1,0 +1,24 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Regra para as configurações do casamento
+    match /wedding/settings {
+      // Qualquer pessoa pode ler as configurações do convite
+      allow read: if true;
+      // Apenas usuários autenticados (admin) podem escrever/atualizar
+      allow write: if request.auth != null;
+    }
+
+    // Regra para a coleção de confirmações de presença (RSVPs)
+    match /rsvps/{rsvpId} {
+      // Qualquer pessoa pode criar (adicionar) um novo RSVP
+      allow create: if true;
+      // Apenas usuários autenticados (admin) podem ler a lista de convidados
+      allow read, list: if request.auth != null;
+      // Ninguém pode atualizar ou deletar RSVPs diretamente pela API do cliente
+      allow update, delete: if false;
+    }
+  }
+}

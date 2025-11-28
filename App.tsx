@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import { Envelope } from './src/components/Envelope';
 import { InvitationContent } from './src/components/InvitationContent';
 import { LoginModal } from './src/components/LoginModal';
@@ -10,27 +10,32 @@ import { INITIAL_SETTINGS } from './constants';
 
 const AdminPanel = lazy(() => import('./src/components/AdminPanel'));
 
+const MAX_FETCH_RETRIES = 3;
+const FETCH_RETRY_DELAY = 2000; // 2 segundos
+
 function App() {
   const [hasOpenedEnvelope, setHasOpenedEnvelope] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [settings, setSettings] = useState<WeddingSettings>(INITIAL_SETTINGS);
   const [user, setUser] = useState<User | null>(null);
+  const [fetchAttempt, setFetchAttempt] = useState(0);
 
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       const appSettings = await getSettings();
       if (appSettings) {
         setSettings(appSettings);
       }
     } catch (error: any) {
-      if (error?.code === 'unavailable' || error?.message?.includes('offline')) {
-        console.log('App offline, using cached settings');
-      } else {
-        console.error('Error fetching settings, returning initial settings:', error);
+      console.error('Error fetching settings:', error);
+      // Tenta novamente se houver erro e não tiver atingido o limite
+      if (fetchAttempt < MAX_FETCH_RETRIES) {
+        setTimeout(() => setFetchAttempt(prev => prev + 1), FETCH_RETRY_DELAY);
       }
     }
-  };
+  }, [fetchAttempt]);
+
 
   useEffect(() => {
     fetchSettings();
@@ -53,7 +58,8 @@ function App() {
     });
     
     return () => unsubscribe();
-  }, []);
+  // A dependência `fetchSettings` garante que o useEffect seja re-executado na tentativa de retry
+  }, [fetchSettings]);
 
   const handleFooterTap = () => {
     if (user) {
@@ -74,6 +80,8 @@ function App() {
   };
   
   const handleSettingsUpdate = () => {
+    // Força uma nova busca para refletir as alterações salvas
+    setFetchAttempt(0);
     fetchSettings();
   };
 

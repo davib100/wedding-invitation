@@ -107,26 +107,47 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
 
   const totalGuests = rsvps.reduce((acc, rsvp) => acc + 1 + (rsvp.hasSpouse ? 1 : 0) + (rsvp.childrenCount || 0), 0);
 
+  const navigation = (
+    <>
+      <Button variant={view === 'general' ? 'secondary' : 'ghost'} className="justify-start" onClick={() => setView('general')}><Info className="mr-2 h-4 w-4"/> Gerais</Button>
+      <Button variant={view === 'event' ? 'secondary' : 'ghost'} className="justify-start" onClick={() => setView('event')}><MapPin className="mr-2 h-4 w-4"/> Evento</Button>
+      <Button variant={view === 'rsvps' ? 'secondary' : 'ghost'} className="justify-start" onClick={() => setView('rsvps')}><ListChecks className="mr-2 h-4 w-4"/> Convidados</Button>
+    </>
+  );
+
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 p-4 animate-fade-in">
-      <div className="container mx-auto bg-paper bg-paper-texture rounded-xl shadow-2xl h-full flex flex-col sm:flex-row overflow-hidden border border-gold/20">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 p-0 sm:p-4 animate-fade-in">
+      <div className="container mx-auto bg-paper bg-paper-texture rounded-none sm:rounded-xl shadow-2xl h-full flex flex-col overflow-hidden border-0 sm:border border-gold/20">
         
-        <aside className="w-full sm:w-64 bg-paper-dark p-4 sm:p-6 flex flex-col justify-between border-b sm:border-r border-gold/10">
-          <div>
-            <h2 className="text-2xl font-bold text-gold-dark font-serif mb-8 text-center sm:text-left">Painel</h2>
-            <nav className="flex flex-row sm:flex-col gap-2">
-              <Button variant={view === 'general' ? 'secondary' : 'ghost'} className="justify-start" onClick={() => setView('general')}><Info className="mr-2 h-4 w-4"/> Gerais</Button>
-              <Button variant={view === 'event' ? 'secondary' : 'ghost'} className="justify-start" onClick={() => setView('event')}><MapPin className="mr-2 h-4 w-4"/> Evento</Button>
-              <Button variant={view === 'rsvps' ? 'secondary' : 'ghost'} className="justify-start" onClick={() => setView('rsvps')}><ListChecks className="mr-2 h-4 w-4"/> Convidados</Button>
+        {/* Header/Sidebar Wrapper */}
+        <header className="flex flex-col sm:flex-row border-b border-gold/10">
+          {/* Sidebar for large screens */}
+          <aside className="hidden sm:flex flex-col justify-between w-64 bg-paper-dark p-6 border-r border-gold/10">
+            <div>
+              <h2 className="text-2xl font-bold text-gold-dark font-serif mb-8">Painel</h2>
+              <nav className="flex flex-col gap-2">
+                {navigation}
+              </nav>
+            </div>
+            <Button onClick={handleLogout} variant="destructive" className="mt-8"><LogOut className="mr-2 h-4 w-4"/> Logout</Button>
+          </aside>
+
+          {/* Header for small screens */}
+          <div className="sm:hidden p-4 bg-paper-dark">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gold-dark font-serif">Painel</h2>
+              <Button onClick={onClose} variant="ghost" size="icon" className="text-ink/60 hover:text-ink">
+                <X />
+              </Button>
+            </div>
+            <nav className="flex justify-center gap-2">
+              {navigation}
             </nav>
           </div>
-          <div className="mt-8 flex flex-col gap-2">
-            <Button onClick={handleLogout} variant="destructive"><LogOut className="mr-2 h-4 w-4"/> Logout</Button>
-          </div>
-        </aside>
+        </header>
         
         <main className="flex-1 p-4 sm:p-8 overflow-y-auto relative flex flex-col">
-          <Button onClick={onClose} variant="ghost" size="icon" className="absolute top-4 right-4 text-ink/60 hover:text-ink z-10">
+          <Button onClick={onClose} variant="ghost" size="icon" className="absolute top-4 right-4 text-ink/60 hover:text-ink z-10 hidden sm:inline-flex">
             <X />
           </Button>
 
@@ -134,7 +155,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
             <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-gold" /></div>
           ) : (
             <form onSubmit={handleSettingsSubmit} className="flex flex-col h-full">
-              <div className="flex-grow space-y-8 pb-32"> {/* Padding bottom to avoid overlap with sticky footer */}
+              <div className="flex-grow space-y-8 pb-24"> {/* Padding bottom to avoid overlap with sticky footer */}
                 {view === 'general' && (
                   <div className="animate-fade-in space-y-8">
                     <Card>
@@ -156,16 +177,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                       <CardHeader><CardTitle>Textos do Convite</CardTitle></CardHeader>
                       <CardContent>
                         <div>
-                          <Label htmlFor="introText">Texto de Introdução (Ex: Com a bênção de Deus e de seus pais)</Label>
-                          <Textarea id="introText" name="introText" value={settings.introText || ''} onChange={handleSettingsChange} />
+                          <Label htmlFor="introText">Texto de Introdução</Label>
+                          <Textarea id="introText" name="introText" value={settings.introText || ''} onChange={handleSettingsChange} placeholder="Ex: Com a bênção de Deus e de seus pais" />
                         </div>
                         <div>
-                          <Label htmlFor="inviteText">Texto do Convite (Ex: Convidam para a celebração de seu casamento)</Label>
-                          <Textarea id="inviteText" name="inviteText" value={settings.inviteText || ''} onChange={handleSettingsChange} />
+                          <Label htmlFor="inviteText">Texto do Convite</Label>
+                          <Textarea id="inviteText" name="inviteText" value={settings.inviteText || ''} onChange={handleSettingsChange} placeholder="Ex: Convidam para a celebração de seu casamento" />
                         </div>
                         <div>
-                          <Label htmlFor="thankYouText">Texto de Agradecimento (Ex: Agradecemos seu carinho e presença)</Label>
-                          <Textarea id="thankYouText" name="thankYouText" value={settings.thankYouText || ''} onChange={handleSettingsChange} />
+                          <Label htmlFor="thankYouText">Texto de Agradecimento</Label>
+                          <Textarea id="thankYouText" name="thankYouText" value={settings.thankYouText || ''} onChange={handleSettingsChange} placeholder="Ex: Agradecemos seu carinho e presença" />
                         </div>
                       </CardContent>
                     </Card>
@@ -176,8 +197,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                     <Card>
                       <CardHeader><CardTitle>Data e Hora</CardTitle></CardHeader>
                       <CardContent>
-                        <div className='flex items-center gap-4'>
-                          <div className='flex-1'>
+                        <div className='flex flex-col sm:flex-row items-start sm:items-center gap-4'>
+                          <div className='flex-1 w-full'>
                             <Label>Data do Evento</Label>
                             <Popover>
                               <PopoverTrigger asChild>
@@ -189,7 +210,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                               <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={settings.eventDate ? new Date(settings.eventDate) : undefined} onSelect={handleDateChange} initialFocus /></PopoverContent>
                             </Popover>
                           </div>
-                          <div className='w-40'>
+                          <div className='sm:w-40 w-full'>
                             <Label>Horário</Label>
                             <Input type="time" value={settings.eventDate ? new Date(settings.eventDate).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit'}) : ''} onChange={handleTimeChange} />
                           </div>
@@ -217,29 +238,29 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                 )}
                 {view === 'rsvps' && (
                   <div className="animate-fade-in">
-                    <div className="flex justify-between items-center mb-6">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
                       <h2 className="text-3xl font-semibold font-serif text-ink">Lista de Convidados</h2>
-                      <div className='text-right border border-gold/20 p-3 rounded-lg bg-white/40'>
+                      <div className='text-right border border-gold/20 p-3 rounded-lg bg-white/40 shrink-0'>
                         <p className='font-bold text-xl text-gold-dark'>{rsvps.length} confirmações</p>
                         <p className='text-sm text-ink/70'>{totalGuests} pessoas no total</p>
                       </div>
                     </div>
-                    <div className="overflow-y-auto bg-white/50 shadow-sm rounded-lg border border-gold/20 h-[calc(100vh-280px)]">
-                      <table className="min-w-full">
-                        <thead className="bg-paper-dark sticky top-0 z-10">
+                    <div className="overflow-x-auto bg-white/50 shadow-sm rounded-lg border border-gold/20">
+                      <table className="w-full text-sm">
+                        <thead className="bg-paper-dark text-left">
                           <tr>
                             {['Nome', 'Acompanhante', 'Crianças', 'Telefone'].map(h => 
-                              <th key={h} className="py-3 px-4 border-b border-gold/20 text-ink text-left font-serif font-semibold">{h}</th>
+                              <th key={h} className="py-3 px-4 border-b border-gold/20 text-ink font-serif font-semibold whitespace-nowrap">{h}</th>
                             )}
                           </tr>
                         </thead>
                         <tbody>
                           {rsvps.map(rsvp => (
                             <tr key={rsvp.id} className="hover:bg-gold/5 transition-colors duration-200">
-                              <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light">{rsvp.firstName} {rsvp.lastName}</td>
-                              <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light">{rsvp.hasSpouse ? rsvp.spouseName : '-'}</td>
-                              <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light">{rsvp.hasChildren ? rsvp.childrenCount : '-'}</td>
-                              <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light">{rsvp.phone}</td>
+                              <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap">{rsvp.firstName} {rsvp.lastName}</td>
+                              <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap">{rsvp.hasSpouse ? rsvp.spouseName : '-'}</td>
+                              <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap">{rsvp.hasChildren ? rsvp.childrenCount : '-'}</td>
+                              <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap">{rsvp.phone}</td>
                             </tr>
                           ))}
                           {rsvps.length === 0 && (
@@ -253,9 +274,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
               </div>
               
               {view !== 'rsvps' && (
-                 <div className="absolute bottom-4 right-4 left-auto w-auto sm:left-[17rem] sm:right-8">
-                  <div className="flex justify-end">
-                    <Button type="submit" size="lg" disabled={isSaving} className="bg-gold hover:bg-gold-dark text-white shadow-lg">
+                 <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 bg-paper-dark/80 backdrop-blur-sm border-t border-gold/20">
+                  <div className="flex justify-end max-w-7xl mx-auto">
+                    <Button type="submit" size="lg" disabled={isSaving} className="bg-gold hover:bg-gold-dark text-white shadow-lg w-full sm:w-auto">
                       {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
                       {isSaving ? 'Salvando...' : 'Salvar Alterações'}
                     </Button>
@@ -271,3 +292,5 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
 };
 
 export default AdminPanel;
+
+    

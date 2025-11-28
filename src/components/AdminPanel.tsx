@@ -160,7 +160,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
               <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-gold" /></div>
             ) : (
               <form onSubmit={handleSettingsSubmit} className="h-full flex flex-col">
-                <div className="flex-grow p-4 sm:p-8 space-y-8 pb-24"> {/* Padding bottom to avoid overlap with sticky footer */}
+                <div className="flex-grow p-4 sm:p-8 space-y-8">
                   {view === 'general' && (
                     <div className="animate-fade-in space-y-8">
                       <Card>
@@ -276,18 +276,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                       </div>
                     </div>
                   )}
-                </div>
-                
-                {view !== 'rsvps' && (
-                   <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 bg-paper-dark/80 backdrop-blur-sm border-t border-gold/20">
-                    <div className="flex justify-end">
+
+                  {view !== 'rsvps' && (
+                    <div className="flex justify-end pt-8">
                       <Button type="submit" size="lg" disabled={isSaving} className="bg-gold hover:bg-gold-dark text-white shadow-lg w-full sm:w-auto">
                         {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
                         {isSaving ? 'Salvando...' : 'Salvar Alterações'}
                       </Button>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </form>
             )}
           </main>

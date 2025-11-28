@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -13,8 +13,6 @@ import { cn } from '../lib/utils';
 import { useIdleTimeout } from '../../hooks/useIdleTimeout';
 import { auth } from '../firebase';
 import { supabase } from '../supabase';
-
-const MapSelector = lazy(() => import('./MapSelector'));
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -115,14 +113,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     }
   };
 
-  const handleLocationChange = (location: { address: string, mapUrl: string }) => {
-    setSettings(prev => ({
-      ...prev,
-      eventAddress: location.address,
-      mapUrl: location.mapUrl,
-    }));
-  };
-
   const handleSettingsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -217,7 +207,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                                     {settings.eventDate ? new Date(settings.eventDate).toLocaleDateString('pt-BR') : <span>Escolha uma data</span>}
                                   </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={settings.eventDate ? new Date(settings.eventDate) : undefined} onSelect={handleDateChange} initialFocus /></PopoverContent>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={settings.eventDate ? new Date(settings.eventDate) : undefined}
+                                    onSelect={handleDateChange}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
                               </Popover>
                             </div>
                             <div className='sm:w-40 w-full'>
@@ -261,12 +258,29 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                               placeholder="Ex: Villa Giardini"
                             />
                           </div>
-                          <Suspense fallback={<div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin text-gold" /></div>}>
-                            <MapSelector 
-                              onChange={handleLocationChange}
-                              initialAddress={settings.eventAddress}
+                          <div>
+                            <Label htmlFor="eventAddress">Endereço do Evento</Label>
+                            <Textarea 
+                              id="eventAddress" 
+                              name="eventAddress" 
+                              value={settings.eventAddress || ''} 
+                              onChange={handleSettingsChange} 
+                              placeholder="Ex: St. de Mansões Park Way Q 3 - Núcleo Bandeirante, Brasília - DF"
                             />
-                          </Suspense>
+                          </div>
+                           <div>
+                            <Label htmlFor="mapUrl">URL de Incorporação do Google Maps</Label>
+                            <Textarea 
+                              id="mapUrl" 
+                              name="mapUrl" 
+                              value={settings.mapUrl || ''} 
+                              onChange={handleSettingsChange} 
+                              placeholder="Cole aqui a URL de incorporação do Google Maps"
+                            />
+                            <p className="text-xs text-ink/60 mt-2">
+                              No Google Maps, encontre o local, clique em "Compartilhar", depois "Incorporar um mapa" e copie a URL do atributo `src` do iframe.
+                            </p>
+                          </div>
                         </CardContent>
                       </Card>
                     </div>

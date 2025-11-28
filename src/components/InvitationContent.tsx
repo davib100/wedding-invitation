@@ -2,28 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { MapPin, ChevronsDown, Volume2, VolumeX, Gift, ExternalLink, Check } from 'lucide-react';
 import { WeddingSettings } from '../../types';
 import { addRSVP } from '../services/storageService';
+import { MapView } from './MapView';
 
 
 interface InvitationContentProps {
   settings: WeddingSettings;
   onFooterClick: () => void;
 }
-
-const MapView = React.memo(({ mapUrl }: { mapUrl: string }) => {
-  if (!mapUrl) return null;
-  return (
-    <iframe
-      src={mapUrl}
-      width="100%"
-      height="100%"
-      style={{ border: 0 }}
-      allowFullScreen
-      loading="lazy"
-      referrerPolicy="no-referrer-when-downgrade"
-      className="w-full h-full opacity-90 rounded-sm"
-    ></iframe>
-  );
-});
 
 export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, onFooterClick }) => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });

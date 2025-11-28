@@ -194,28 +194,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                           </div>
                         </CardContent>
                       </Card>
-                      <Card>
-                        <CardHeader><CardTitle>Textos do Convite</CardTitle></CardHeader>
-                        <CardContent>
-                          <div>
-                            <Label htmlFor="introText">Texto de Introdução</Label>
-                            <Textarea id="introText" name="introText" value={settings.introText || ''} onChange={handleSettingsChange} placeholder="Ex: Com a bênção de Deus e de seus pais" />
-                          </div>
-                          <div>
-                            <Label htmlFor="inviteText">Texto do Convite</Label>
-                            <Textarea id="inviteText" name="inviteText" value={settings.inviteText || ''} onChange={handleSettingsChange} placeholder="Ex: Convidam para a celebração de seu casamento" />
-                          </div>
-                          <div>
-                            <Label htmlFor="thankYouText">Texto de Agradecimento</Label>
-                            <Textarea id="thankYouText" name="thankYouText" value={settings.thankYouText || ''} onChange={handleSettingsChange} placeholder="Ex: Agradecemos seu carinho e presença" />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  )}
-                  {view === 'event' && (
-                    <div className="animate-fade-in space-y-8">
-                      <Card>
+                       <Card>
                         <CardHeader><CardTitle>Data e Hora</CardTitle></CardHeader>
                         <CardContent>
                           <div className='flex flex-col sm:flex-row items-start sm:items-center gap-4'>
@@ -238,6 +217,27 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                           </div>
                         </CardContent>
                       </Card>
+                      <Card>
+                        <CardHeader><CardTitle>Textos do Convite</CardTitle></CardHeader>
+                        <CardContent>
+                          <div>
+                            <Label htmlFor="introText">Texto de Introdução</Label>
+                            <Textarea id="introText" name="introText" value={settings.introText || ''} onChange={handleSettingsChange} placeholder="Ex: Com a bênção de Deus e de seus pais" />
+                          </div>
+                          <div>
+                            <Label htmlFor="inviteText">Texto do Convite</Label>
+                            <Textarea id="inviteText" name="inviteText" value={settings.inviteText || ''} onChange={handleSettingsChange} placeholder="Ex: Convidam para a celebração de seu casamento" />
+                          </div>
+                          <div>
+                            <Label htmlFor="thankYouText">Texto de Agradecimento</Label>
+                            <Textarea id="thankYouText" name="thankYouText" value={settings.thankYouText || ''} onChange={handleSettingsChange} placeholder="Ex: Agradecemos seu carinho e presença" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                  {view === 'event' && (
+                    <div className="animate-fade-in space-y-8">
                       <Card>
                         <CardHeader><CardTitle>Localização</CardTitle></CardHeader>
                         <CardContent>

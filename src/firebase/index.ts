@@ -1,10 +1,12 @@
 import { initializeApp, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore, enableIndexedDbPersistence } from 'firebase/firestore';
+import { getFirestore, Firestore, enableIndexedDbPersistence, initializeFirestore, CACHE_SIZE_UNLIMITED } from 'firebase/firestore';
 import { firebaseConfig } from './config';
 
 let firebaseApp: FirebaseApp;
 let db: Firestore;
+let auth: Auth;
+let firestorePromise: Promise<void>;
 
 try {
   firebaseApp = getApp();
@@ -12,28 +14,24 @@ try {
   firebaseApp = initializeApp(firebaseConfig);
 }
 
-db = getFirestore(firebaseApp);
+// Initialize Firestore with settings
+db = initializeFirestore(firebaseApp, {
+  cacheSizeBytes: CACHE_SIZE_UNLIMITED,
+});
 
-// Habilita a persistência offline.
-// Isso armazena os dados localmente para que o aplicativo funcione offline
-// e para evitar erros de "cliente offline" na inicialização.
-try {
-    enableIndexedDbPersistence(db)
-      .catch((err) => {
-        if (err.code == 'failed-precondition') {
-          // Múltiplas abas abertas, o que pode causar problemas.
-          // A persistência funcionará na primeira aba, mas não nas outras.
-          console.warn('Firestore persistence failed: Multiple tabs open.');
-        } else if (err.code == 'unimplemented') {
-          // O navegador não suporta a persistência.
-          console.warn('Firestore persistence is not available in this browser.');
-        }
-      });
-} catch (error) {
-    console.error("Error enabling Firestore persistence:", error);
-}
+// Initialize Auth
+auth = getAuth(firebaseApp);
 
 
-const auth: Auth = getAuth(firebaseApp);
+// Create a promise that resolves when persistence is enabled
+firestorePromise = enableIndexedDbPersistence(db)
+  .catch((err) => {
+    if (err.code == 'failed-precondition') {
+      console.warn('Firestore persistence failed: Multiple tabs open.');
+    } else if (err.code == 'unimplemented') {
+      console.warn('Firestore persistence is not available in this browser.');
+    }
+  });
 
-export { auth, db };
+
+export { auth, db, firestorePromise };

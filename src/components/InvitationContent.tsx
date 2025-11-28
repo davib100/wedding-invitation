@@ -245,16 +245,16 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
            </h3>
            <div className="pt-6 space-y-4">
              <div className="flex flex-col">
-                <span className="font-script text-2xl md:text-3xl text-ink">
+                <span className="font-script text-3xl md:text-4xl text-ink">
                   {new Date(settings.eventDate).toLocaleDateString('pt-BR', { weekday: 'long' })}
                 </span>
-                <span className="font-serif text-4xl md:text-5xl text-gold-dark font-bold my-1">
+                <span className="font-serif text-5xl md:text-6xl text-gold-dark font-bold my-1">
                   {new Date(settings.eventDate).getDate()}
                 </span>
-                <span className="text-xs uppercase tracking-[0.2em] text-ink/60">
+                <span className="text-sm uppercase tracking-[0.2em] text-ink/60">
                   {new Date(settings.eventDate).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
                 </span>
-                <span className="font-serif italic text-base md:text-lg mt-2">
+                <span className="font-serif italic text-lg md:text-xl mt-2">
                    às {new Date(settings.eventDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </span>
              </div>

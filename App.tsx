@@ -6,6 +6,7 @@ import { getSettings } from './src/services/storageService';
 import { WeddingSettings } from './types';
 import { auth } from './src/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import { INITIAL_SETTINGS } from './constants';
 
 const AdminPanel = lazy(() => import('./src/components/AdminPanel'));
 
@@ -13,16 +14,21 @@ function App() {
   const [hasOpenedEnvelope, setHasOpenedEnvelope] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [settings, setSettings] = useState<WeddingSettings | null>(null);
+  // Initialize with default settings for instant load
+  const [settings, setSettings] = useState<WeddingSettings>(INITIAL_SETTINGS);
   const [user, setUser] = useState<User | null>(null);
 
+  // Fetch personalized settings from Firestore in the background
   const fetchSettings = async () => {
     const appSettings = await getSettings();
-    setSettings(appSettings);
+    if (appSettings) {
+      setSettings(appSettings);
+    }
   };
 
   useEffect(() => {
-    fetchSettings();
+    fetchSettings(); // Fetch settings on initial load
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (!currentUser) {

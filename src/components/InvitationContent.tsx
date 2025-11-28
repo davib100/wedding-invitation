@@ -5,7 +5,7 @@ import { addRSVP } from '../services/storageService';
 
 
 interface InvitationContentProps {
-  settings: WeddingSettings | null;
+  settings: WeddingSettings;
   onFooterClick: () => void;
 }
 
@@ -125,14 +125,6 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
         return newState;
     });
   };
-
-  if (!settings) {
-    return (
-      <div className="w-full min-h-screen bg-paper bg-paper-texture flex items-center justify-center">
-        <p className="text-ink font-serif animate-pulse">Carregando detalhes do convite...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="relative w-full min-h-screen bg-paper bg-paper-texture overflow-y-auto animate-fade-in">

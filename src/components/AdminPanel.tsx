@@ -11,6 +11,7 @@ import { collection, onSnapshot, getFirestore } from 'firebase/firestore';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { cn } from '../lib/utils';
+import { useIdleTimeout } from '../../hooks/useIdleTimeout';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -25,6 +26,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
   const [rsvps, setRsvps] = useState<RSVP[]>([]);
   const [view, setView] = useState<AdminView>('general');
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleLogout = async () => {
+    const auth = getAuth();
+    await signOut(auth);
+    onClose();
+  };
+
+  // Logout after 1 hour of inactivity
+  useIdleTimeout(handleLogout, 3600000); 
 
   useEffect(() => {
     if (!isOpen) return;
@@ -56,21 +66,33 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
   
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
-        setSettings(prev => ({ ...prev, eventDate: date.toISOString()}));
+        // Preserve time, only change date part
+        const currentDate = settings.eventDate ? new Date(settings.eventDate) : new Date();
+        const newDate = new Date(date);
+        newDate.setHours(currentDate.getHours());
+        newDate.setMinutes(currentDate.getMinutes());
+        newDate.setSeconds(currentDate.getSeconds());
+        setSettings(prev => ({ ...prev, eventDate: newDate.toISOString()}));
     }
   };
+  
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const timeValue = e.target.value; // e.g., "16:00"
+    if (settings.eventDate) {
+        const date = new Date(settings.eventDate);
+        const [hours, minutes] = timeValue.split(':').map(Number);
+        date.setHours(hours);
+        date.setMinutes(minutes);
+        setSettings(prev => ({ ...prev, eventDate: date.toISOString() }));
+    }
+  };
+
 
   const handleSettingsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await saveSettings(settings as WeddingSettings);
     onSettingsUpdate();
     alert('Configurações salvas com sucesso!');
-  };
-
-  const handleLogout = async () => {
-    const auth = getAuth();
-    await signOut(auth);
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -140,30 +162,40 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                       {view === 'event' && (
                           <div className="animate-fade-in space-y-6">
                               <h2 className="text-3xl font-semibold font-serif text-ink border-b border-gold/20 pb-2">Detalhes do Evento</h2>
-                              <div>
-                                  <Label>Data do Evento</Label>
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <Button
-                                        variant={"outline"}
-                                        className={cn(
-                                          "w-full justify-start text-left font-normal",
-                                          !settings.eventDate && "text-muted-foreground"
-                                        )}
-                                      >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {settings.eventDate ? new Date(settings.eventDate).toLocaleDateString('pt-BR') : <span>Escolha uma data</span>}
-                                      </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
-                                      <Calendar
-                                        mode="single"
-                                        selected={settings.eventDate ? new Date(settings.eventDate) : undefined}
-                                        onSelect={handleDateChange}
-                                        initialFocus
-                                      />
-                                    </PopoverContent>
-                                  </Popover>
+                              <div className='flex items-center gap-4'>
+                                <div className='flex-1'>
+                                    <Label>Data do Evento</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                        <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                            "w-full justify-start text-left font-normal",
+                                            !settings.eventDate && "text-muted-foreground"
+                                            )}
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {settings.eventDate ? new Date(settings.eventDate).toLocaleDateString('pt-BR') : <span>Escolha uma data</span>}
+                                        </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                            mode="single"
+                                            selected={settings.eventDate ? new Date(settings.eventDate) : undefined}
+                                            onSelect={handleDateChange}
+                                            initialFocus
+                                        />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <div className='w-40'>
+                                    <Label>Horário</Label>
+                                    <Input 
+                                        type="time"
+                                        value={settings.eventDate ? new Date(settings.eventDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit'}) : ''}
+                                        onChange={handleTimeChange}
+                                    />
+                                </div>
                               </div>
                               <div>
                                 <Label htmlFor="eventLocation">Local do Evento</Label>

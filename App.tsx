@@ -28,10 +28,7 @@ function App() {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      if (currentUser) {
-        setIsAdminOpen(true);
-        setIsLoginModalOpen(false);
-      } else {
+      if (!currentUser) {
         setIsAdminOpen(false); // Close admin panel on logout
       }
     });
@@ -51,6 +48,11 @@ function App() {
     setIsAdminOpen(false);
   };
 
+  const handleLoginSuccess = () => {
+    setIsLoginModalOpen(false);
+    setIsAdminOpen(true); 
+  };
+  
   const handleSettingsUpdate = () => {
     fetchSettings(); // Re-fetch settings after they are updated
   };
@@ -74,15 +76,15 @@ function App() {
         />
       )}
 
-      {!user && (
-        <LoginModal
-          isOpen={isLoginModalOpen}
-          onClose={() => setIsLoginModalOpen(false)}
-          onLoginSuccess={() => { /* Auth state change handles opening the admin panel */ }}
-        />
-      )}
+      {/* Login modal is always in the DOM, but visibility is controlled by isOpen */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
 
-      {isAdminOpen && (
+      {/* AdminPanel is only rendered and loaded when a user is authenticated and it's meant to be open */}
+      {user && isAdminOpen && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center"><p className="text-white font-serif">Carregando painel...</p></div>}>
           <AdminPanel
             isOpen={isAdminOpen}

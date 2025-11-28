@@ -79,7 +79,7 @@ function App() {
         onLoginSuccess={handleLoginSuccess}
       />
 
-      {user && isAdminOpen && (
+      {isAdminOpen && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center"><p className="text-white font-serif">Carregando painel...</p></div>}>
           <AdminPanel
             isOpen={isAdminOpen}

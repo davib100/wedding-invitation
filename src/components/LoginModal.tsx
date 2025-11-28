@@ -1,16 +1,16 @@
 
-import React, { useState } from 'react';
+import React, 'useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { X } from 'lucide-react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, User } from 'firebase/auth';
 import { auth } from '../firebase';
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess: () => void;
+  onLoginSuccess: (user: User) => void;
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
@@ -23,8 +23,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
     setError('');
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      onLoginSuccess();
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      onLoginSuccess(userCredential.user);
     } catch (error: any) {
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
         setError('Usuário ou senha inválidos.');

@@ -41,16 +41,9 @@ function App() {
     fetchSettings();
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      // Força o logout se a página for recarregada e um usuário persistido for encontrado.
-      // Apenas permite o estado do usuário se for definido por um login ativo.
-      if (currentUser && sessionStorage.getItem('isAdminLoggedIn') !== 'true') {
-        signOut(auth);
-        setUser(null);
-        setIsAdminOpen(false);
-      } else {
-        setUser(currentUser);
-      }
-
+      setUser(currentUser); // Apenas atualiza o estado do usuário
+    
+      // Se não há usuário, limpa o estado de admin
       if (!currentUser) {
         sessionStorage.removeItem('isAdminLoggedIn');
         setIsAdminOpen(false);
@@ -62,6 +55,8 @@ function App() {
   }, [fetchSettings]);
 
   const handleFooterTap = () => {
+    // Se o usuário já está logado (verificado pelo estado `user`), abre o painel.
+    // Senão, abre o modal de login.
     if (user) {
       setIsAdminOpen(true);
     } else {
@@ -73,10 +68,11 @@ function App() {
     setIsAdminOpen(false);
   };
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = (loggedInUser: User) => {
+    setUser(loggedInUser); // Garante que o estado do usuário seja definido
     sessionStorage.setItem('isAdminLoggedIn', 'true');
     setIsLoginModalOpen(false);
-    setIsAdminOpen(true); 
+    setIsAdminOpen(true); // Abre o painel diretamente
   };
   
   const handleSettingsUpdate = () => {
@@ -84,6 +80,27 @@ function App() {
     setFetchAttempt(0);
     fetchSettings();
   };
+  
+  // Efeito para forçar o logout ao recarregar a página
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Limpa a flag de sessão para que na próxima carga o estado seja resetado
+      sessionStorage.removeItem('isAdminLoggedIn');
+    };
+  
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    // Força o logout se um usuário persistido for encontrado na carga inicial
+    // sem a flag de sessão (indicando recarga da página).
+    if (auth.currentUser && sessionStorage.getItem('isAdminLoggedIn') !== 'true') {
+        signOut(auth);
+    }
+  
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
 
   return (
     <div className="w-full min-h-screen bg-black">
@@ -102,7 +119,7 @@ function App() {
         onLoginSuccess={handleLoginSuccess}
       />
 
-      {isAdminOpen && (
+      {isAdminOpen && user && (
         <Suspense fallback={<div className="fixed inset-0 bg-black/50 flex items-center justify-center"><p className="text-white font-serif">Carregando painel...</p></div>}>
           <AdminPanel
             isOpen={isAdminOpen}

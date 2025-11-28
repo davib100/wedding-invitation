@@ -7,6 +7,7 @@ import { WeddingSettings } from './types';
 import { auth } from './src/firebase';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { INITIAL_SETTINGS } from './constants';
+import { Loader2 } from 'lucide-react';
 
 const AdminPanel = lazy(() => import('./src/components/AdminPanel'));
 
@@ -20,8 +21,10 @@ function App() {
   const [settings, setSettings] = useState<WeddingSettings>(INITIAL_SETTINGS);
   const [user, setUser] = useState<User | null>(null);
   const [fetchAttempt, setFetchAttempt] = useState(0);
+  const [isLoading, setIsLoading] = useState(true); // Estado de carregamento
 
   const fetchSettings = useCallback(async () => {
+    setIsLoading(true);
     try {
       const appSettings = await getSettings();
       if (appSettings) {
@@ -33,6 +36,8 @@ function App() {
       if (fetchAttempt < MAX_FETCH_RETRIES) {
         setTimeout(() => setFetchAttempt(prev => prev + 1), FETCH_RETRY_DELAY);
       }
+    } finally {
+      setIsLoading(false);
     }
   }, [fetchAttempt]);
 
@@ -41,9 +46,8 @@ function App() {
     fetchSettings();
 
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser); // Apenas atualiza o estado do usuário
+      setUser(currentUser);
     
-      // Se não há usuário, limpa o estado de admin
       if (!currentUser) {
         sessionStorage.removeItem('isAdminLoggedIn');
         setIsAdminOpen(false);
@@ -51,12 +55,9 @@ function App() {
     });
     
     return () => unsubscribe();
-  // A dependência `fetchSettings` garante que o useEffect seja re-executado na tentativa de retry
   }, [fetchSettings]);
 
   const handleFooterTap = () => {
-    // Se o usuário já está logado (verificado pelo estado `user`), abre o painel.
-    // Senão, abre o modal de login.
     if (user) {
       setIsAdminOpen(true);
     } else {
@@ -69,29 +70,24 @@ function App() {
   };
 
   const handleLoginSuccess = (loggedInUser: User) => {
-    setUser(loggedInUser); // Garante que o estado do usuário seja definido
+    setUser(loggedInUser);
     sessionStorage.setItem('isAdminLoggedIn', 'true');
     setIsLoginModalOpen(false);
-    setIsAdminOpen(true); // Abre o painel diretamente
+    setIsAdminOpen(true);
   };
   
   const handleSettingsUpdate = () => {
-    // Força uma nova busca para refletir as alterações salvas
     setFetchAttempt(0);
     fetchSettings();
   };
   
-  // Efeito para forçar o logout ao recarregar a página
   useEffect(() => {
     const handleBeforeUnload = () => {
-      // Limpa a flag de sessão para que na próxima carga o estado seja resetado
       sessionStorage.removeItem('isAdminLoggedIn');
     };
   
     window.addEventListener('beforeunload', handleBeforeUnload);
     
-    // Força o logout se um usuário persistido for encontrado na carga inicial
-    // sem a flag de sessão (indicando recarga da página).
     if (auth.currentUser && sessionStorage.getItem('isAdminLoggedIn') !== 'true') {
         signOut(auth);
     }
@@ -102,15 +98,29 @@ function App() {
   }, []);
 
 
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="fixed inset-0 flex flex-col items-center justify-center bg-paper text-gold-dark font-serif">
+          <Loader2 className="w-12 h-12 animate-spin" />
+          <p className="mt-4 text-lg">Carregando convite...</p>
+        </div>
+      );
+    }
+    return (
+      <InvitationContent
+        settings={settings}
+        onFooterClick={handleFooterTap}
+      />
+    );
+  };
+
   return (
     <div className="w-full min-h-screen bg-black">
       {!hasOpenedEnvelope ? (
         <Envelope onOpen={() => setHasOpenedEnvelope(true)} />
       ) : (
-        <InvitationContent
-          settings={settings}
-          onFooterClick={handleFooterTap}
-        />
+        renderContent()
       )}
 
       <LoginModal

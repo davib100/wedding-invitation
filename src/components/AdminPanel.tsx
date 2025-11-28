@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -7,12 +7,12 @@ import { Calendar as CalendarIcon, LogOut, ListChecks, Info, MapPin, X, Loader2,
 import { signOut } from 'firebase/auth';
 import { WeddingSettings, RSVP } from '../../types';
 import { saveSettings, getSettings } from '../services/storageService';
-import { collection, onSnapshot } from 'firebase/firestore';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { cn } from '../lib/utils';
 import { useIdleTimeout } from '../../hooks/useIdleTimeout';
-import { auth, db } from '../firebase';
+import { auth } from '../firebase';
+import { supabase } from '../supabase';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -45,33 +45,49 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
 
   useIdleTimeout(handleLogout, 3600000); 
 
+  const fetchInitialData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const currentSettings = await getSettings();
+      setSettings(currentSettings);
+    } catch (error) {
+      console.error("Failed to fetch settings on mount:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!isOpen) return;
-
-    const fetchInitialData = async () => {
-      setIsLoading(true);
-      try {
-        const currentSettings = await getSettings();
-        setSettings(currentSettings);
-      } catch (error) {
-        console.error("Failed to fetch settings on mount:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     
     fetchInitialData();
 
-    const rsvpCollection = collection(db, 'rsvps');
-    const unsubscribe = onSnapshot(rsvpCollection, (snapshot) => {
-      const rsvpsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as RSVP));
-      setRsvps(rsvpsData.sort((a, b) => a.firstName.localeCompare(b.firstName))); // Sort RSVPs by name
-    }, (error) => {
+    // Fetch initial RSVPs
+    const fetchRsvps = async () => {
+      const { data, error } = await supabase.from('rsvps').select('*').order('firstName', { ascending: true });
+      if (error) {
         console.error("Error fetching RSVPs:", error);
-    });
+      } else if (data) {
+        setRsvps(data as RSVP[]);
+      }
+    };
+    fetchRsvps();
 
-    return () => unsubscribe();
-  }, [isOpen]);
+    // Listen for real-time changes
+    const channel = supabase
+      .channel('rsvps')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'rsvps' }, (payload) => {
+          console.log('Change received!', payload);
+          // Refetch all RSVPs to ensure data consistency
+          fetchRsvps();
+      })
+      .subscribe();
+      
+    // Cleanup subscription
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isOpen, fetchInitialData]);
 
   const handleSettingsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -160,7 +176,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
               <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-gold" /></div>
             ) : (
               <form onSubmit={handleSettingsSubmit} className="h-full flex flex-col">
-                <div className="flex-grow p-4 sm:p-8 space-y-8">
+                <div className="flex-grow p-4 sm:p-8 space-y-8 pb-24">
                   {view === 'general' && (
                     <div className="animate-fade-in space-y-8">
                       <Card>
@@ -279,7 +295,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
 
                   {view !== 'rsvps' && (
                     <div className="flex justify-end pt-8">
-                      <Button type="submit" size="lg" disabled={isSaving} className="bg-gold hover:bg-gold-dark text-white shadow-lg w-full sm:w-auto">
+                       <Button type="submit" size="lg" disabled={isSaving} className="bg-gold hover:bg-gold-dark text-white shadow-lg w-full sm:w-auto">
                         {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
                         {isSaving ? 'Salvando...' : 'Salvar Alterações'}
                       </Button>

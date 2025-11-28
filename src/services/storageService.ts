@@ -1,52 +1,77 @@
 import { RSVP, WeddingSettings } from '../../types';
 import { INITIAL_SETTINGS } from '../../constants';
-import { doc, getDoc, setDoc, collection, addDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { supabase } from '../supabase';
 
-const settingsDocRef = doc(db, 'wedding', 'settings');
+const SETTINGS_ID = 1; // Assuming a single row for settings with a fixed ID
 
 export const getSettings = async (): Promise<WeddingSettings> => {
   try {
-    const docSnap = await getDoc(settingsDocRef);
-    if (docSnap.exists()) {
-      return docSnap.data() as WeddingSettings;
-    } else {
-      // Se não existir, cria o documento com as configurações iniciais
-      await setDoc(settingsDocRef, INITIAL_SETTINGS);
-      return INITIAL_SETTINGS;
+    const { data, error, status } = await supabase
+      .from('settings')
+      .select('*')
+      .eq('id', SETTINGS_ID)
+      .single();
+
+    if (error && status !== 406) {
+      console.error('Error fetching settings:', error);
+      throw error;
     }
-  } catch (error: any) {
-    if (error.code === 'unavailable' || (error.message && error.message.includes('offline'))) {
-      console.log('Firestore temporariamente indisponível. Retornando configurações padrão.');
+
+    if (data) {
+      return data as WeddingSettings;
     } else {
-      console.error('Erro ao buscar configurações. Retornando configurações padrão:', error);
+      // If no settings exist, create them with initial values.
+      const { data: newData, error: insertError } = await supabase
+        .from('settings')
+        .insert({ ...INITIAL_SETTINGS, id: SETTINGS_ID })
+        .select()
+        .single();
+      
+      if (insertError) {
+        console.error('Error creating initial settings:', insertError);
+        throw insertError;
+      }
+      return newData as WeddingSettings;
     }
-    // Retorna as configurações padrão para que a UI não quebre em caso de erro de conexão.
+  } catch (error) {
+    console.error('Error in getSettings, returning initial settings:', error);
+    // Return default settings for UI to function
     return INITIAL_SETTINGS;
   }
 };
 
-export const saveSettings = async (settings: WeddingSettings): Promise<void> => {
+export const saveSettings = async (settings: Partial<WeddingSettings>): Promise<void> => {
   try {
-    await setDoc(settingsDocRef, settings, { merge: true });
+    const { error } = await supabase
+      .from('settings')
+      .update(settings)
+      .eq('id', SETTINGS_ID);
+
+    if (error) {
+      console.error('Error saving settings:', error);
+      throw error;
+    }
   } catch (error) {
-    console.error("Error saving settings:", error);
-    throw error; // Re-throw para tratamento no componente chamador
+    console.error('Exception in saveSettings:', error);
+    throw error;
   }
 };
 
 export const addRSVP = async (rsvpData: Omit<RSVP, 'id' | 'confirmedAt'>): Promise<void> => {
   try {
-    const rsvpCollection = collection(db, 'rsvps');
-    
-    const newRSVP: Omit<RSVP, 'id'> = {
+    const newRSVP = {
       ...rsvpData,
       confirmedAt: new Date().toISOString(),
     };
-    
-    await addDoc(rsvpCollection, newRSVP);
+
+    const { error } = await supabase.from('rsvps').insert(newRSVP);
+
+    if (error) {
+      console.error('Error adding RSVP:', error);
+      throw error;
+    }
   } catch (error) {
-    console.error("Error adding RSVP:", error);
-    throw error; // Re-throw para tratamento no componente chamador
+    console.error('Exception in addRSVP:', error);
+    throw error;
   }
 };

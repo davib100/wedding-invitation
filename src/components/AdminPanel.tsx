@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -13,6 +13,8 @@ import { cn } from '../lib/utils';
 import { useIdleTimeout } from '../../hooks/useIdleTimeout';
 import { auth } from '../firebase';
 import { supabase } from '../supabase';
+
+const MapSelector = lazy(() => import('./MapSelector'));
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -113,6 +115,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     }
   };
 
+  const handleLocationChange = (location: { address: string, mapUrl: string }) => {
+    setSettings(prev => ({
+      ...prev,
+      eventAddress: location.address,
+      mapUrl: location.mapUrl,
+    }));
+  };
+
   const handleSettingsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -194,7 +204,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                           </div>
                         </CardContent>
                       </Card>
-                       <Card>
+                      <Card>
                         <CardHeader><CardTitle>Data e Hora</CardTitle></CardHeader>
                         <CardContent>
                           <div className='flex flex-col sm:flex-row items-start sm:items-center gap-4'>
@@ -237,22 +247,26 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                     </div>
                   )}
                   {view === 'event' && (
-                    <div className="animate-fade-in space-y-8">
+                     <div className="animate-fade-in space-y-8">
                       <Card>
-                        <CardHeader><CardTitle>Localização</CardTitle></CardHeader>
+                        <CardHeader><CardTitle>Localização do Evento</CardTitle></CardHeader>
                         <CardContent>
                           <div>
                             <Label htmlFor="eventLocation">Nome do Local</Label>
-                            <Input id="eventLocation" name="eventLocation" value={settings.eventLocation || ''} onChange={handleSettingsChange} />
+                            <Input 
+                              id="eventLocation" 
+                              name="eventLocation" 
+                              value={settings.eventLocation || ''} 
+                              onChange={handleSettingsChange} 
+                              placeholder="Ex: Villa Giardini"
+                            />
                           </div>
-                          <div>
-                            <Label htmlFor="eventAddress">Endereço Completo</Label>
-                            <Input id="eventAddress" name="eventAddress" value={settings.eventAddress || ''} onChange={handleSettingsChange} />
-                          </div>
-                          <div>
-                            <Label htmlFor="mapUrl">URL de Incorporação do Google Maps</Label>
-                            <Input id="mapUrl" name="mapUrl" value={settings.mapUrl || ''} onChange={handleSettingsChange} />
-                          </div>
+                          <Suspense fallback={<div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin text-gold" /></div>}>
+                            <MapSelector 
+                              onChange={handleLocationChange}
+                              initialAddress={settings.eventAddress}
+                            />
+                          </Suspense>
                         </CardContent>
                       </Card>
                     </div>
@@ -292,16 +306,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                       </div>
                     </div>
                   )}
-
-                  {view !== 'rsvps' && (
-                    <div className="flex justify-end pt-8">
-                       <Button type="submit" size="lg" disabled={isSaving} className="bg-gold hover:bg-gold-dark text-white shadow-lg w-full sm:w-auto">
-                        {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
-                        {isSaving ? 'Salvando...' : 'Salvar Alterações'}
-                      </Button>
-                    </div>
-                  )}
                 </div>
+
+                {view !== 'rsvps' && (
+                  <div className="sticky bottom-0 bg-paper/80 backdrop-blur-sm p-4 border-t border-gold/10 flex justify-end">
+                     <Button type="submit" size="lg" disabled={isSaving} className="bg-gold hover:bg-gold-dark text-white shadow-lg w-full sm:w-auto">
+                      {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
+                      {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+                    </Button>
+                  </div>
+                )}
               </form>
             )}
           </main>

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { signInWithEmailAndPassword, User } from 'firebase/auth';
 import { auth } from '../firebase';
 
@@ -17,10 +17,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -31,11 +33,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
       } else if (error.code === 'auth/api-key-not-valid') {
         setError('Erro de configuração: A chave da API do Firebase não é válida.');
         console.error("Please check your Firebase configuration in the .env file at the root of your project.");
-      }
-      else {
+      } else {
         setError('Ocorreu um erro ao fazer login.');
         console.error(error);
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -45,11 +48,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-paper/90 border border-gold/30 text-ink rounded-lg shadow-2xl w-full max-w-sm p-8 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-ink/50 hover:text-gold transition-colors">
+      <div className="bg-paper bg-paper-texture border border-gold/30 text-ink rounded-lg shadow-2xl w-full max-w-sm p-8 relative">
+        
+        <button onClick={onClose} className="absolute top-4 right-4 text-ink/50 hover:text-gold transition-colors disabled:opacity-50" disabled={isLoading}>
           <X size={20} />
         </button>
-        <h2 className="font-serif text-3xl text-gold-dark mb-6 text-center">Admin Login</h2>
+        
+        <div className="text-center mb-8">
+          <h2 className="font-serif text-3xl text-gold-dark">Acesso Restrito</h2>
+          <p className="text-sm text-ink/60 mt-1">Painel Administrativo</p>
+        </div>
+
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="email" className="font-serif text-ink">Email</Label>
@@ -58,8 +67,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white/50 border-b border-gold/30 focus:border-gold outline-none py-2 px-1 font-sans text-ink transition-colors placeholder:text-ink/30"
+              className="bg-white/50 border-b-2 border-gold/30 focus:border-gold !ring-0 !ring-offset-0"
               required
+              placeholder="seu@email.com"
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -69,14 +80,24 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-               className="w-full bg-white/50 border-b border-gold/30 focus:border-gold outline-none py-2 px-1 font-sans text-ink transition-colors placeholder:text-ink/30"
+              className="bg-white/50 border-b-2 border-gold/30 focus:border-gold !ring-0 !ring-offset-0"
               required
+              placeholder="••••••••"
+              disabled={isLoading}
             />
           </div>
-          {error && <p className="text-red-600 text-sm font-sans text-center">{error}</p>}
-          <Button type="submit" className="w-full bg-gold hover:bg-gold-dark text-white font-serif tracking-widest uppercase py-3 mt-4">
-            Login
-          </Button>
+
+          {error && <p className="text-red-600 text-sm font-sans text-center bg-red-500/10 p-3 rounded-md border border-red-600/30">{error}</p>}
+          
+          <div className="pt-2">
+            <Button type="submit" className="w-full bg-gold hover:bg-gold-dark text-white font-serif tracking-widest uppercase py-3 h-12 text-base shadow-lg hover:shadow-xl transition-all duration-300" disabled={isLoading}>
+              {isLoading ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                'Login'
+              )}
+            </Button>
+          </div>
         </form>
       </div>
     </div>

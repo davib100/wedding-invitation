@@ -151,7 +151,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
             </nav>
           </header>
 
-          <main className="flex-1 p-4 sm:p-8 overflow-y-auto relative">
+          <main className="flex-1 overflow-y-auto relative">
             <Button onClick={onClose} variant="ghost" size="icon" className="absolute top-4 right-4 text-ink/60 hover:text-ink z-10 hidden sm:inline-flex">
               <X />
             </Button>
@@ -160,7 +160,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
               <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-gold" /></div>
             ) : (
               <form onSubmit={handleSettingsSubmit} className="h-full flex flex-col">
-                <div className="flex-grow space-y-8 pb-24"> {/* Padding bottom to avoid overlap with sticky footer */}
+                <div className="flex-grow p-4 sm:p-8 space-y-8 pb-24"> {/* Padding bottom to avoid overlap with sticky footer */}
                   {view === 'general' && (
                     <div className="animate-fade-in space-y-8">
                       <Card>

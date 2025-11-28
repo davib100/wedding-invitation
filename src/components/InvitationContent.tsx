@@ -22,6 +22,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
     lastName: '',
     phone: '',
     hasSpouse: 'no' as 'yes' | 'no',
+    spouseName: '',
     hasChildren: 'no' as 'yes' | 'no',
     childrenCount: 0,
   });
@@ -96,6 +97,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
             lastName: '',
             phone: '',
             hasSpouse: 'no',
+            spouseName: '',
             hasChildren: 'no',
             childrenCount: 0,
         });
@@ -108,10 +110,13 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
     setFormData(prev => {
         const newState = { ...prev, [field]: value };
         if (field === 'hasChildren' && value === 'no') {
-            newState.childrenCount = 0; // Reset children count if they are not bringing children
+            newState.childrenCount = 0;
         }
         if (field === 'hasChildren' && value === 'yes' && newState.childrenCount === 0) {
-            newState.childrenCount = 1; // Default to 1 if they are bringing children
+            newState.childrenCount = 1;
+        }
+        if (field === 'hasSpouse' && value === 'no') {
+            newState.spouseName = '';
         }
         return newState;
     });
@@ -386,6 +391,19 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                            </div>
                         </div>
                       </div>
+
+                      {formData.hasSpouse === 'yes' && (
+                         <div className="space-y-2 pt-2 transition-all duration-300 animate-fade-in">
+                            <label className="block font-serif text-ink">Nome do Cônjuge</label>
+                            <input
+                              type="text"
+                              value={formData.spouseName}
+                              onChange={e => setFormData({...formData, spouseName: e.target.value})}
+                              className="w-full bg-white/50 border-b border-gold/30 focus:border-gold outline-none py-2 px-1 font-sans text-ink transition-colors placeholder:text-ink/30"
+                              placeholder="Nome completo do cônjuge"
+                            />
+                         </div>
+                      )}
 
                       <div className="space-y-3 pt-2">
                         <label className="block font-serif text-ink">Você pretende levar seu filhos?</label>

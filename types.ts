@@ -4,6 +4,7 @@ export interface RSVP {
   lastName: string;
   phone: string;
   hasSpouse: boolean;
+  spouseName?: string;
   hasChildren: boolean;
   childrenCount: number;
   confirmedAt: string; // ISO String

@@ -24,8 +24,10 @@ interface MapSelectorProps {
 }
 
 const MapSelector: React.FC<MapSelectorProps> = ({ onChange, initialAddress }) => {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  
   const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    googleMapsApiKey: apiKey,
     libraries,
   });
 
@@ -56,14 +58,14 @@ const MapSelector: React.FC<MapSelectorProps> = ({ onChange, initialAddress }) =
         if (status === 'OK' && results && results[0]) {
           const newAddress = results[0].formatted_address;
           setAddress(newAddress);
-          const mapUrl = `https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&q=${encodeURIComponent(newAddress)}`;
+          const mapUrl = `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodeURIComponent(newAddress)}`;
           onChange({ address: newAddress, mapUrl });
         } else {
           setAddress('Endereço não encontrado para esta localização.');
         }
       });
     }
-  }, [onChange]);
+  }, [onChange, apiKey]);
   
   const onMapClick = (e: google.maps.MapMouseEvent) => {
     if (e.latLng) {
@@ -77,12 +79,20 @@ const MapSelector: React.FC<MapSelectorProps> = ({ onChange, initialAddress }) =
     }
   };
 
+  if (!apiKey) {
+    return (
+        <div className="text-center p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
+            <p className="font-bold">Erro de Configuração do Mapa.</p>
+            <p className="text-sm">A chave de API do Google Maps não foi encontrada. Por favor, adicione a variável de ambiente <code className="font-mono text-xs bg-red-200 px-1 py-0.5 rounded">VITE_GOOGLE_MAPS_API_KEY</code> ao seu arquivo .env.</p>
+        </div>
+    );
+  }
 
   if (loadError) {
     return (
         <div className="text-center p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
             <p className="font-bold">Erro ao carregar o Google Maps.</p>
-            <p className="text-sm">Por favor, verifique se a chave de API do Google Maps está configurada corretamente no arquivo .env (VITE_GOOGLE_MAPS_API_KEY).</p>
+            <p className="text-sm">Verifique se a chave de API do Google Maps está correta e se as APIs "Maps JavaScript API" e "Geocoding API" estão ativadas no Google Cloud Console.</p>
         </div>
     );
   }

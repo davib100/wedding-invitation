@@ -4,7 +4,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Calendar as CalendarIcon, LogOut, Settings, ListChecks, Info, MapPin } from 'lucide-react';
-import { getAuth, signOut } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
 import { WeddingSettings, RSVP } from '../../types';
 import { saveSettings, getSettings } from '../services/storageService';
 import { collection, onSnapshot, getFirestore } from 'firebase/firestore';
@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { cn } from '../lib/utils';
 import { useIdleTimeout } from '../../hooks/useIdleTimeout';
+import { auth, db } from '../firebase';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -28,7 +29,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
   const [isLoading, setIsLoading] = useState(true);
 
   const handleLogout = async () => {
-    const auth = getAuth();
     await signOut(auth);
     onClose();
   };
@@ -48,7 +48,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     
     fetchInitialSettings();
 
-    const db = getFirestore();
     const rsvpCollection = collection(db, 'rsvps');
     const unsubscribe = onSnapshot(rsvpCollection, (snapshot) => {
         const rsvpsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as RSVP));

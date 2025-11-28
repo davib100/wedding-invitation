@@ -4,8 +4,8 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { X } from 'lucide-react';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { initializeFirebase } from '../firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -23,7 +23,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
     setError('');
 
     try {
-      const { auth } = initializeFirebase();
       await signInWithEmailAndPassword(auth, email, password);
       onLoginSuccess();
     } catch (error: any) {

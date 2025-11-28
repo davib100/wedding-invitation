@@ -1,12 +1,8 @@
 import { RSVP, WeddingSettings } from '../../types';
 import { INITIAL_SETTINGS } from '../../constants';
-import { getFirestore, doc, getDoc, setDoc, collection, addDoc } from 'firebase/firestore';
-import { initializeFirebase } from '../firebase';
+import { doc, getDoc, setDoc, collection, addDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
-// Ensures Firebase is initialized
-initializeFirebase();
-
-const db = getFirestore();
 const settingsDocRef = doc(db, 'wedding', 'settings');
 
 export const getSettings = async (): Promise<WeddingSettings> => {

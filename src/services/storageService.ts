@@ -6,15 +6,8 @@ import { db } from '../firebase';
 const settingsDocRef = doc(db, 'wedding', 'settings');
 
 export const getSettings = async (): Promise<WeddingSettings> => {
-  // Verifica a conexão antes de tentar. Não é 100% garantido, mas ajuda.
-  if (typeof navigator !== 'undefined' && !navigator.onLine) {
-    console.log('Navegador offline, retornando configurações iniciais.');
-    return INITIAL_SETTINGS;
-  }
-  
   try {
     const docSnap = await getDoc(settingsDocRef);
-    
     if (docSnap.exists()) {
       return docSnap.data() as WeddingSettings;
     } else {
@@ -23,15 +16,13 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       return INITIAL_SETTINGS;
     }
   } catch (error: any) {
-    // Não loga múltiplas vezes se for erro de offline
-    if (error?.code === 'unavailable' || error?.message?.includes('offline')) {
+    if (error.code === 'unavailable' || (error.message && error.message.includes('offline'))) {
       console.log('Firestore temporariamente indisponível. Retornando configurações padrão.');
     } else {
-      console.error("Error fetching settings, returning initial settings:", error);
+      console.error('Erro ao buscar configurações. Retornando configurações padrão:', error);
     }
-    
-    // Lança o erro para que a lógica de retry possa ser acionada
-    throw error;
+    // Retorna as configurações padrão para que a UI não quebre em caso de erro de conexão.
+    return INITIAL_SETTINGS;
   }
 };
 

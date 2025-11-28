@@ -254,7 +254,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                 <span className="text-sm uppercase tracking-[0.2em] text-ink/60">
                   {new Date(settings.eventDate).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
                 </span>
-                <span className="font-serif italic text-lg md:text-xl mt-2">
+                <span className="font-serif italic text-xl md:text-2xl mt-2">
                    às {new Date(settings.eventDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </span>
              </div>

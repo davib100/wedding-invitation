@@ -245,16 +245,16 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
            </h3>
            <div className="pt-6 space-y-4">
              <div className="flex flex-col">
-                <span className="font-script text-3xl md:text-4xl text-ink">
+                <span className="font-script text-4xl md:text-5xl text-ink">
                   {new Date(settings.eventDate).toLocaleDateString('pt-BR', { weekday: 'long' })}
                 </span>
-                <span className="font-serif text-5xl md:text-6xl text-gold-dark font-bold my-1">
+                <span className="font-serif text-6xl md:text-7xl text-gold-dark font-bold my-1">
                   {new Date(settings.eventDate).getDate()}
                 </span>
-                <span className="text-sm uppercase tracking-[0.2em] text-ink/60">
+                <span className="text-base uppercase tracking-[0.2em] text-ink/60">
                   {new Date(settings.eventDate).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
                 </span>
-                <span className="font-serif italic text-xl md:text-2xl mt-2">
+                <span className="font-serif italic text-2xl md:text-3xl mt-2">
                    às {new Date(settings.eventDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </span>
              </div>
@@ -270,16 +270,18 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gold text-white p-2 rounded-full shadow-lg z-10">
                <MapPin size={20} />
              </div>
-             <iframe 
-               src={settings.mapUrl}
-               width="100%" 
-               height="100%" 
-               style={{ border: 0, filter: 'grayscale(30%) sepia(20%)' }} 
-               allowFullScreen 
-               loading="lazy"
-               referrerPolicy="no-referrer-when-downgrade"
-               className="w-full h-full opacity-90 rounded-sm"
-             ></iframe>
+             {settings.mapUrl && (
+              <iframe
+                src={settings.mapUrl}
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="w-full h-full opacity-90 rounded-sm"
+              ></iframe>
+            )}
           </div>
           <div className="text-center mt-4">
              <a 

@@ -12,28 +12,29 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       .eq('id', SETTINGS_ID)
       .single();
 
-    if (error && status !== 406) { // 406 means no rows found, which is not an error here
+    if (error && status !== 406) { // 406 means "Not Found", which is expected on first run
       console.error('Error fetching settings:', error);
       throw error;
     }
 
     if (data) {
+      // Settings exist, return them
       return data as WeddingSettings;
     } else {
-      // If no settings row exists, create it with initial values.
-      // This happens on the very first run against a new database.
-      const { data: newData, error: insertError } = await supabase
+      // Settings do not exist, create them using upsert for safety
+      console.log('No settings found, creating initial settings...');
+      const { data: newData, error: upsertError } = await supabase
         .from('settings')
-        .insert({ ...INITIAL_SETTINGS, id: SETTINGS_ID })
+        .upsert({ ...INITIAL_SETTINGS, id: SETTINGS_ID })
         .select()
         .single();
       
-      if (insertError) {
-        console.error('Error creating initial settings:', insertError);
-        // This will likely fail if the table doesn't exist, so we fall back.
-        throw insertError;
+      if (upsertError) {
+        console.error('Error creating initial settings:', upsertError);
+        throw upsertError;
       }
-      // Successfully created the initial settings row.
+      
+      console.log('Initial settings created successfully.');
       return newData as WeddingSettings;
     }
   } catch (error) {

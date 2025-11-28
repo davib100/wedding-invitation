@@ -5,7 +5,7 @@ import { addRSVP } from '../services/storageService';
 
 
 interface InvitationContentProps {
-  settings: WeddingSettings;
+  settings: WeddingSettings | null;
   onFooterClick: () => void;
 }
 
@@ -30,10 +30,11 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
 
 
   const initials = useMemo(() => {
+    if (!settings) return { groom: 'G', bride: 'B' };
     const groomInitial = settings.groomName ? settings.groomName.trim().charAt(0).toUpperCase() : 'G';
     const brideInitial = settings.brideName ? settings.brideName.trim().charAt(0).toUpperCase() : 'B';
     return { groom: groomInitial, bride: brideInitial };
-  }, [settings.groomName, settings.brideName]);
+  }, [settings?.groomName, settings?.brideName]);
 
   const handleFooterClick = () => {
     const newClickCount = footerClicks + 1;
@@ -45,7 +46,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
   };
 
   useEffect(() => {
-    if (audioRef.current) {
+    if (audioRef.current && settings?.musicUrl) {
       if (isPlaying) {
         audioRef.current.volume = 0.4;
         audioRef.current.play().catch(e => console.log("Autoplay blocked until interaction", e));
@@ -53,9 +54,10 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
         audioRef.current.pause();
       }
     }
-  }, [isPlaying]);
+  }, [isPlaying, settings?.musicUrl]);
 
   useEffect(() => {
+    if (!settings?.eventDate) return;
     const targetDate = new Date(settings.eventDate).getTime();
     const interval = setInterval(() => {
       const now = new Date().getTime();
@@ -72,7 +74,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [settings.eventDate]);
+  }, [settings?.eventDate]);
 
   const handleRsvpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,6 +125,14 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
         return newState;
     });
   };
+
+  if (!settings) {
+    return (
+      <div className="w-full min-h-screen bg-paper bg-paper-texture flex items-center justify-center">
+        <p className="text-ink font-serif animate-pulse">Carregando detalhes do convite...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full min-h-screen bg-paper bg-paper-texture overflow-y-auto animate-fade-in">

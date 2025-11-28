@@ -51,16 +51,9 @@ function App() {
   };
   
   const handleSettingsUpdate = () => {
+    // Refetch settings after they have been updated in the admin panel
     fetchSettings();
   };
-
-  if (!settings) {
-    return (
-      <div className="w-full min-h-screen bg-black flex items-center justify-center">
-        <p className="text-white font-serif">Carregando convite...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full min-h-screen bg-black">

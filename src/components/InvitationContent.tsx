@@ -446,7 +446,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                           rel="noreferrer"
                           className="w-full inline-flex items-center justify-center bg-gold hover:bg-gold-dark text-white font-serif tracking-widest uppercase py-3 transition-all duration-300 shadow-md active:scale-95 text-sm"
                         >
-                          Quero Contribuir com Mimos
+                          Contribuir com Mimos
                         </a>
                       </div>
                     </form>

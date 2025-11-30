@@ -18,14 +18,33 @@ export const getSettings = async (): Promise<WeddingSettings> => {
     }
 
     if (data) {
-      // Settings exist, return them
-      return data as WeddingSettings;
+      // Settings exist, transform and return them
+      const { lat, lng, ...rest } = data;
+      
+      // Constrói mapCoordinates a partir de lat e lng
+      const mapCoordinates = (lat !== null && lng !== null) 
+        ? { lat, lng } 
+        : { lat: -15.7801, lng: -47.9292 }; // Coordenadas padrão
+      
+      return { 
+        ...rest, 
+        mapCoordinates 
+      } as WeddingSettings;
     } else {
       // Settings do not exist, create them using upsert for safety
       console.log('No settings found, creating initial settings...');
+      
+      const { mapCoordinates, ...restOfInitialSettings } = INITIAL_SETTINGS;
+      const dbInitialSettings = {
+        ...restOfInitialSettings,
+        lat: mapCoordinates?.lat || -15.7801,
+        lng: mapCoordinates?.lng || -47.9292,
+        id: SETTINGS_ID
+      };
+
       const { data: newData, error: upsertError } = await supabase
         .from('settings')
-        .upsert({ ...INITIAL_SETTINGS, id: SETTINGS_ID })
+        .upsert(dbInitialSettings)
         .select()
         .single();
       
@@ -35,7 +54,11 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       }
       
       console.log('Initial settings created successfully.');
-      return newData as WeddingSettings;
+      const { lat, lng, ...rest } = newData;
+      return { 
+        ...rest, 
+        mapCoordinates: { lat, lng } 
+      } as WeddingSettings;
     }
   } catch (error) {
     console.error('Error in getSettings, returning initial settings as fallback:', error);
@@ -46,15 +69,29 @@ export const getSettings = async (): Promise<WeddingSettings> => {
 
 export const saveSettings = async (settings: Partial<WeddingSettings>): Promise<void> => {
   try {
+    const { mapCoordinates, ...rest } = settings;
+    let dbSettings: any = { ...rest };
+
+    // Converte mapCoordinates para colunas separadas lat/lng
+    if (mapCoordinates) {
+      dbSettings.lat = mapCoordinates.lat;
+      dbSettings.lng = mapCoordinates.lng;
+    }
+
+    // Remove mapCoordinates do objeto antes de salvar (não existe no banco)
+    delete dbSettings.mapCoordinates;
+
     const { error } = await supabase
       .from('settings')
-      .update(settings)
+      .update(dbSettings)
       .eq('id', SETTINGS_ID);
 
     if (error) {
       console.error('Error saving settings:', error);
       throw error;
     }
+    
+    console.log('Settings saved successfully');
   } catch (error) {
     console.error('Exception in saveSettings:', error);
     throw error;
@@ -74,6 +111,8 @@ export const addRSVP = async (rsvpData: Omit<RSVP, 'id' | 'confirmedAt'>): Promi
       console.error('Error adding RSVP:', error);
       throw error;
     }
+    
+    console.log('RSVP added successfully');
   } catch (error) {
     console.error('Exception in addRSVP:', error);
     throw error;

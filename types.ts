@@ -11,12 +11,16 @@ export interface RSVP {
 }
 
 export interface WeddingSettings {
+  id?: number; // Adiciona ID para compatibilidade com banco
   groomName: string;
   brideName: string;
   eventDate: string; // ISO String
   eventLocation: string;
   eventAddress: string;
-  mapUrl: string;
+  mapCoordinates?: { lat: number; lng: number }; // Opcional para evitar erros
+  lat?: number; // Colunas do banco
+  lng?: number; // Colunas do banco
+  mapUrl?: string;
   musicUrl: string;
   heroImageUrl: string;
   introText: string;

@@ -13,6 +13,7 @@ import { cn } from '../lib/utils';
 import { useIdleTimeout } from '../../hooks/useIdleTimeout';
 import { auth } from '../firebase';
 import { supabase } from '../supabase';
+import InteractiveMap from './InteractiveMap';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -62,7 +63,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     
     fetchInitialData();
 
-    // Fetch initial RSVPs
     const fetchRsvps = async () => {
       const { data, error } = await supabase.from('rsvps').select('*').order('firstName', { ascending: true });
       if (error) {
@@ -73,17 +73,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     };
     fetchRsvps();
 
-    // Listen for real-time changes
     const channel = supabase
       .channel('rsvps')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'rsvps' }, (payload) => {
           console.log('Change received!', payload);
-          // Refetch all RSVPs to ensure data consistency
           fetchRsvps();
       })
       .subscribe();
       
-    // Cleanup subscription
     return () => {
       supabase.removeChannel(channel);
     };
@@ -92,6 +89,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
   const handleSettingsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setSettings(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handlePinLocationChange = (location: { x: number; y: number }) => {
+    setSettings(prev => ({ ...prev, mapPinLocation: location }));
   };
   
   const handleDateChange = (date: Date | undefined) => {
@@ -142,7 +143,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 p-0 sm:p-4 animate-fade-in">
       <div className="container mx-auto bg-paper bg-paper-texture rounded-none sm:rounded-xl shadow-2xl h-full flex overflow-hidden border-0 sm:border border-gold/20">
         
-        {/* --- Sidebar for large screens --- */}
         <aside className="hidden sm:flex flex-col justify-between w-64 bg-paper-dark p-6 border-r border-gold/10">
           <div>
             <h2 className="text-2xl font-bold text-gold-dark font-serif mb-8">Painel</h2>
@@ -154,7 +154,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
         </aside>
 
         <div className="flex-1 flex flex-col">
-          {/* --- Header for small screens --- */}
           <header className="sm:hidden p-4 bg-paper-dark border-b border-gold/10">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gold-dark font-serif">Painel</h2>
@@ -244,47 +243,88 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                     </div>
                   )}
                   {view === 'event' && (
-                     <div className="animate-fade-in space-y-8">
-                      <Card>
-                        <CardHeader><CardTitle>Localização do Evento</CardTitle></CardHeader>
-                        <CardContent>
-                          <div>
-                            <Label htmlFor="eventLocation">Nome do Local</Label>
-                            <Input 
-                              id="eventLocation" 
-                              name="eventLocation" 
-                              value={settings.eventLocation || ''} 
-                              onChange={handleSettingsChange} 
-                              placeholder="Ex: Villa Giardini"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="eventAddress">Endereço do Evento</Label>
-                            <Textarea 
-                              id="eventAddress" 
-                              name="eventAddress" 
-                              value={settings.eventAddress || ''} 
-                              onChange={handleSettingsChange} 
-                              placeholder="Ex: St. de Mansões Park Way Q 3 - Núcleo Bandeirante, Brasília - DF"
-                            />
-                          </div>
-                           <div>
-                            <Label htmlFor="mapUrl">URL de Incorporação do Google Maps</Label>
-                            <Textarea 
-                              id="mapUrl" 
-                              name="mapUrl" 
-                              value={settings.mapUrl || ''} 
-                              onChange={handleSettingsChange} 
-                              placeholder="Cole aqui a URL de incorporação do Google Maps"
-                            />
-                            <p className="text-xs text-ink/60 mt-2">
-                              No Google Maps, encontre o local, clique em "Compartilhar", depois "Incorporar um mapa" e copie a URL do atributo `src` do iframe.
-                            </p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  )}
+  <div className="animate-fade-in space-y-8">
+    <Card>
+      <CardHeader><CardTitle>Localização do Evento</CardTitle></CardHeader>
+      <CardContent>
+        <div>
+          <Label htmlFor="eventLocation">Nome do Local</Label>
+          <Input 
+            id="eventLocation" 
+            name="eventLocation" 
+            value={settings.eventLocation || ''} 
+            onChange={handleSettingsChange} 
+            placeholder="Ex: Villa Giardini"
+          />
+        </div>
+        <div>
+          <Label htmlFor="eventAddress">Endereço do Evento</Label>
+          <Textarea 
+            id="eventAddress" 
+            name="eventAddress" 
+            value={settings.eventAddress || ''} 
+            onChange={handleSettingsChange} 
+            placeholder="Ex: St. de Mansões Park Way Q 3 - Núcleo Bandeirante, Brasília - DF"
+          />
+        </div>
+        <div>
+          <Label>Coordenadas do Mapa</Label>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <Label htmlFor="mapLat" className="text-xs">Latitude</Label>
+              <Input 
+                id="mapLat"
+                type="number"
+                step="any"
+                value={settings.mapCoordinates?.lat || ''}
+                onChange={(e) => setSettings(prev => ({
+                  ...prev,
+                  mapCoordinates: {
+                    lat: parseFloat(e.target.value) || 0,
+                    lng: prev.mapCoordinates?.lng || 0
+                  }
+                }))}
+                placeholder="-15.7801"
+              />
+            </div>
+            <div>
+              <Label htmlFor="mapLng" className="text-xs">Longitude</Label>
+              <Input 
+                id="mapLng"
+                type="number"
+                step="any"
+                value={settings.mapCoordinates?.lng || ''}
+                onChange={(e) => setSettings(prev => ({
+                  ...prev,
+                  mapCoordinates: {
+                    lat: prev.mapCoordinates?.lat || 0,
+                    lng: parseFloat(e.target.value) || 0
+                  }
+                }))}
+                placeholder="-47.9292"
+              />
+            </div>
+          </div>
+          <Label>Clique no mapa para definir a localização</Label>
+          {settings.mapCoordinates && (
+            <InteractiveMap 
+              coordinates={settings.mapCoordinates}
+              onMapClick={(coords) => setSettings(prev => ({
+                ...prev,
+                mapCoordinates: coords
+              }))}
+            />
+          )}
+          {!settings.mapCoordinates && (
+            <div className="bg-gray-100 h-[400px] flex items-center justify-center text-gray-500 rounded border border-dashed">
+              Digite as coordenadas acima ou clique no mapa
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+)}
                   {view === 'rsvps' && (
                     <div className="animate-fade-in">
                       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">

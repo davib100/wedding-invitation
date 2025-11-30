@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { MapPin, ChevronsDown, Volume2, VolumeX, Gift, ExternalLink, Check } from 'lucide-react';
 import { WeddingSettings } from '../../types';
 import { addRSVP } from '../services/storageService';
-import { MapView } from './MapView';
+import MapView from './MapView';
 
 
 interface InvitationContentProps {
@@ -267,21 +267,26 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
         </section>
 
         <section className="w-full pt-4 md:pt-8">
-          <div className="relative w-full h-64 md:h-80 bg-paper-dark p-2 shadow-inner border border-gold/20 rotate-1 transition-transform hover:rotate-0 duration-500 rounded-sm">
-             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gold text-white p-2 rounded-full shadow-lg z-10">
-               <MapPin size={20} />
-             </div>
-            <MapView mapUrl={settings.mapUrl} />
+          <div 
+            className="relative w-full bg-paper-dark p-2 shadow-inner border border-gold/20 rotate-1 transition-transform hover:rotate-0 duration-500 rounded-sm"
+            style={{ height: '450px' }} // Altura fixa em pixels para garantir renderização
+          >
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gold text-white p-2 rounded-full shadow-lg z-10">
+              <MapPin size={20} />
+            </div>
+            <div className="w-full h-full">
+              <MapView settings={settings} />
+            </div>
           </div>
           <div className="text-center mt-4">
-             <a 
-               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.eventAddress)}`}
-               target="_blank"
-               rel="noreferrer"
-               className="text-xs font-sans tracking-widest text-gold-dark hover:underline uppercase"
-             >
-               Ver no Google Maps
-             </a>
+            <a 
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.eventAddress)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-sans tracking-widest text-gold-dark hover:underline uppercase"
+            >
+              Ver no Google Maps
+            </a>
           </div>
         </section>
 

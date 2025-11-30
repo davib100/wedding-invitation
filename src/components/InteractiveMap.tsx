@@ -1,33 +1,32 @@
 import React, { useEffect, useRef } from 'react';
-import { WeddingSettings } from '../../types';
 
 declare var L: any; // Declare Leaflet
 
-interface MapViewProps {
-  settings: Partial<WeddingSettings>;
+interface InteractiveMapProps {
+  coordinates: { lat: number; lng: number };
+  onMapClick: (coords: { lat: number; lng: number }) => void;
 }
 
-const MapView: React.FC<MapViewProps> = ({ settings }) => {
+const InteractiveMap: React.FC<InteractiveMapProps> = ({ coordinates, onMapClick }) => {
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isInitializedRef = useRef<boolean>(false);
-  const { mapCoordinates } = settings;
 
   useEffect(() => {
-    if (!mapCoordinates || !containerRef.current) return;
+    if (!coordinates || !containerRef.current) return;
 
     // Se o mapa já existe, apenas atualiza a visualização
     if (mapRef.current && isInitializedRef.current) {
-      mapRef.current.setView([mapCoordinates.lat, mapCoordinates.lng], 16);
+      mapRef.current.setView([coordinates.lat, coordinates.lng], 15);
       if (markerRef.current) {
-        markerRef.current.setLatLng([mapCoordinates.lat, mapCoordinates.lng]);
+        markerRef.current.setLatLng([coordinates.lat, coordinates.lng]);
       }
       return;
     }
 
-    // Limpa instância anterior do Leaflet
-    const container = L.DomUtil.get('map-view');
+    // Limpa qualquer instância anterior do Leaflet no container
+    const container = L.DomUtil.get('interactive-map');
     if (container != null) {
       if (container._leaflet_id != null) {
         delete container._leaflet_id;
@@ -36,13 +35,11 @@ const MapView: React.FC<MapViewProps> = ({ settings }) => {
 
     try {
       // Initialize map
-      const map = L.map('map-view', {
-        center: [mapCoordinates.lat, mapCoordinates.lng],
-        zoom: 16,
+      const map = L.map('interactive-map', {
+        center: [coordinates.lat, coordinates.lng],
+        zoom: 15,
         zoomControl: true,
-        attributionControl: true,
-        scrollWheelZoom: true,
-        dragging: true
+        attributionControl: true
       });
 
       // Add tile layer
@@ -54,9 +51,20 @@ const MapView: React.FC<MapViewProps> = ({ settings }) => {
       mapRef.current = map;
       isInitializedRef.current = true;
 
-      // Add marker
-      const marker = L.marker([mapCoordinates.lat, mapCoordinates.lng]).addTo(map);
+      // Add initial marker
+      const marker = L.marker([coordinates.lat, coordinates.lng], {
+        draggable: false
+      }).addTo(map);
       markerRef.current = marker;
+
+      // Map click event
+      map.on('click', (e: any) => {
+        const { lat, lng } = e.latlng;
+        onMapClick({ lat, lng });
+        if (markerRef.current) {
+          markerRef.current.setLatLng([lat, lng]);
+        }
+      });
 
       // Força o mapa a recalcular seu tamanho após a renderização
       setTimeout(() => {
@@ -69,8 +77,8 @@ const MapView: React.FC<MapViewProps> = ({ settings }) => {
       console.error('Error initializing map:', error);
       isInitializedRef.current = false;
     }
-  }, [mapCoordinates]);
-
+  }, [coordinates, onMapClick]);
+  
   // Cleanup ao desmontar o componente
   useEffect(() => {
     return () => {
@@ -89,18 +97,22 @@ const MapView: React.FC<MapViewProps> = ({ settings }) => {
   }, []);
 
   return (
-    <div 
-      id="map-view" 
-      ref={containerRef}
-      style={{ 
-        height: '100%', 
-        width: '100%', 
-        minHeight: '400px',
-        position: 'relative',
-        zIndex: 0
-      }}
-    />
+    <div>
+      <div 
+        id="interactive-map" 
+        ref={containerRef}
+        style={{ 
+          height: '400px', 
+          width: '100%', 
+          zIndex: 0,
+          position: 'relative'
+        }}
+      />
+      <p className="text-sm text-gray-500 mt-2">
+        Clique no mapa para definir a localização exata.
+      </p>
+    </div>
   );
 };
 
-export default MapView;
+export default InteractiveMap;

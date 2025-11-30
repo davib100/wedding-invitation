@@ -321,7 +321,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
              “Acima de tudo, porém, revistam-se do amor, que é o vínculo da perfeição.”
            </p>
            <p className="font-sans text-sm text-ink/60 mt-2">
-             autor desconhecido
+             Colossenses 3:14
            </p>
         </section>
 

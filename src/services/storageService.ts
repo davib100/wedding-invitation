@@ -1,5 +1,5 @@
 import { RSVP, WeddingSettings } from '../../types';
-import { INITIAL_SETTINGS } from '../../constants';
+import { INITIAL_SETTINGS } from '../constants';
 import { supabase } from '../supabase';
 
 const SETTINGS_ID = 1; // Assuming a single row for settings with a fixed ID
@@ -25,10 +25,22 @@ export const getSettings = async (): Promise<WeddingSettings> => {
         ? { lat, lng } 
         : INITIAL_SETTINGS.mapCoordinates;
       
+      // Handle colorPalette which might be a string
+      let colorPalette = rest.colorPalette || INITIAL_SETTINGS.colorPalette;
+      if (typeof colorPalette === 'string') {
+        try {
+          colorPalette = JSON.parse(colorPalette);
+        } catch (e) {
+          console.error("Error parsing colorPalette, using default.", e);
+          colorPalette = INITIAL_SETTINGS.colorPalette;
+        }
+      }
+
       return { 
         ...INITIAL_SETTINGS, // Start with defaults
         ...rest,             // Override with DB data
-        mapCoordinates       // Add the constructed coordinates
+        mapCoordinates,       // Add the constructed coordinates
+        colorPalette
       } as WeddingSettings;
     } else {
       // Settings do not exist, create them using upsert for safety
@@ -39,7 +51,8 @@ export const getSettings = async (): Promise<WeddingSettings> => {
         ...restOfInitialSettings,
         lat: mapCoordinates?.lat || -15.7801,
         lng: mapCoordinates?.lng || -47.9292,
-        id: SETTINGS_ID
+        id: SETTINGS_ID,
+        colorPalette: JSON.stringify(restOfInitialSettings.colorPalette) // Ensure it's a string
       };
 
       const { data: newData, error: upsertError } = await supabase
@@ -58,7 +71,8 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       return { 
         ...INITIAL_SETTINGS,
         ...rest, 
-        mapCoordinates: { lat, lng } 
+        mapCoordinates: { lat, lng },
+        colorPalette: INITIAL_SETTINGS.colorPalette // Use the array from initial settings
       } as WeddingSettings;
     }
   } catch (error) {
@@ -82,7 +96,6 @@ export const saveSettings = async (settings: Partial<WeddingSettings>): Promise<
     if (Array.isArray(dbSettings.colorPalette)) {
       dbSettings.colorPalette = JSON.stringify(dbSettings.colorPalette);
     }
-
 
     const { error } = await supabase
       .from('settings')

@@ -352,7 +352,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                           <div>
                             <Label>Cores</Label>
                             <div className="flex items-center gap-4 mt-2">
-                              {settings.colorPalette?.map((color, index) => (
+                              {(settings.colorPalette || []).map((color, index) => (
                                 <div key={index} className="flex flex-col items-center gap-2">
                                   <Label htmlFor={`color-${index}`} className="text-xs">Cor {index + 1}</Label>
                                   <Input

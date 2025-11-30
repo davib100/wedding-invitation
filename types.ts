@@ -28,6 +28,7 @@ export interface WeddingSettings {
   thankYouText: string;
   colorPaletteText: string;
   colorPalette: string[];
+  mapPinLocation?: { x: number; y: number }; // Para o pino no mapa interativo
 }
 
 export interface AdminUser {

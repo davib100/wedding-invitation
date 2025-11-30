@@ -297,7 +297,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
         <section className="w-full max-w-4xl mx-auto text-center bg-paper/90 backdrop-blur-sm border-2 border-gold/30 rounded-lg p-6 md:p-10 mt-8 md:mt-12">
             <h2 className="font-serif text-3xl md:text-4xl text-gold-dark mb-4">Palheta de Cores</h2>
             <p className="font-sans text-ink/70 mb-8 max-w-lg mx-auto text-sm md:text-base">
-              Sua presença é o maior presente! Mas se desejar nos presentear, ficaremos muito felizes com sua contribuição.
+              Terracota & Verde Oliva
             </p>
             <div className="flex justify-center">
               <a

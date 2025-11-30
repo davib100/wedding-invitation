@@ -444,9 +444,8 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                           href="https://meu-cha-de-panela-295da407.base44.app/home"
                           target="_blank"
                           rel="noreferrer"
-                          className="w-full inline-flex items-center justify-center gap-2 bg-gold hover:bg-gold-dark text-white font-serif tracking-widest uppercase py-3 transition-all duration-300 shadow-md active:scale-95"
+                          className="w-full inline-flex items-center justify-center bg-gold hover:bg-gold-dark text-white font-serif tracking-widest uppercase py-3 transition-all duration-300 shadow-md active:scale-95 text-sm"
                         >
-                          <Gift size={16} />
                           Quero Contribuir com Mimos
                         </a>
                       </div>

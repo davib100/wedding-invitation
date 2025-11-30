@@ -221,7 +221,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
           
         </header>
 
-        <section className="space-y-6 max-w-lg mx-auto">
+        <section className="space-y-6 max-w-lg mx-auto mt-[-4rem] md:mt-[-5rem]">
           <p className="font-serif text-base md:text-lg text-ink leading-relaxed">
             {settings.inviteText}
           </p>

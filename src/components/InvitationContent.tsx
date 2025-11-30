@@ -265,7 +265,14 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
              </div>
              <div className="pt-4">
                 <p className="font-serif text-lg md:text-xl font-semibold text-ink">{settings.eventLocation}</p>
-                <p className="font-sans text-sm text-ink/60 max-w-xs mx-auto mt-1">{settings.eventAddress}</p>
+                <p className="font-sans text-sm text-ink/60 max-w-xs mx-auto mt-1">
+                  {settings.eventAddress && settings.eventAddress.split(' / ').map((line, index, arr) => (
+                    <React.Fragment key={index}>
+                      {line}
+                      {index < arr.length - 1 && <br />}
+                    </React.Fragment>
+                  ))}
+                </p>
              </div>
            </div>
         </section>

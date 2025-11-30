@@ -316,9 +316,12 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
             </div>
         </section>
 
-        <section className="max-w-md mx-auto py-6">
+        <section className="max-w-md mx-auto py-6 text-center">
            <p className="font-script text-2xl md:text-3xl text-ink/80 leading-relaxed">
-             "{settings.thankYouText}"
+             “Acima de tudo, porém, revistam-se do amor, que é o vínculo da perfeição.”
+           </p>
+           <p className="font-sans text-sm text-ink/60 mt-2">
+             autor desconhecido
            </p>
         </section>
 

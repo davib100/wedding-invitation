@@ -7,19 +7,20 @@ export interface RSVP {
   spouseName?: string;
   hasChildren: boolean;
   childrenCount: number;
-  confirmedAt: string; // ISO String
+  confirmedAt: string;
 }
 
 export interface WeddingSettings {
-  id?: number; // Adiciona ID para compatibilidade com banco
+  id?: number;
   groomName: string;
   brideName: string;
-  eventDate: string; // ISO String
+  eventDate: string;
   eventLocation: string;
   eventAddress: string;
-  mapCoordinates?: { lat: number; lng: number }; // Opcional para evitar erros
-  lat?: number; // Colunas do banco
-  lng?: number; // Colunas do banco
+  eventAddressReference?: string;
+  mapCoordinates?: { lat: number; lng: number };
+  lat?: number; 
+  lng?: number; 
   mapUrl?: string;
   musicUrl: string;
   heroImageUrl: string;
@@ -28,7 +29,7 @@ export interface WeddingSettings {
   thankYouText: string;
   colorPaletteText: string;
   colorPalette: string[];
-  mapPinLocation?: { x: number; y: number }; // Para o pino no mapa interativo
+  mapPinLocation?: { x: number; y: number }; 
 }
 
 export interface AdminUser {

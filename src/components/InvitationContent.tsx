@@ -266,13 +266,23 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
              <div className="pt-4">
                 <p className="font-serif text-lg md:text-xl font-semibold text-ink">{settings.eventLocation}</p>
                 <p className="font-sans text-sm text-ink/60 max-w-xs mx-auto mt-1">
-                  {settings.eventAddress && settings.eventAddress.split(' / ').map((line, index, arr) => (
+                  {settings.eventAddress && settings.eventAddress.split('/').map((line, index, arr) => (
                     <React.Fragment key={index}>
                       {line}
                       {index < arr.length - 1 && <br />}
                     </React.Fragment>
                   ))}
                 </p>
+                {settings.eventAddressReference && (
+                   <p className="font-sans text-sm text-ink/60 max-w-xs mx-auto mt-1">
+                    {settings.eventAddressReference.split('/').map((line, index, arr) => (
+                      <React.Fragment key={index}>
+                        {line}
+                        {index < arr.length - 1 && <br />}
+                      </React.Fragment>
+                    ))}
+                  </p>
+                )}
              </div>
            </div>
         </section>
@@ -302,9 +312,9 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
         </section>
 
         <section className="w-full max-w-4xl mx-auto text-center bg-paper/90 backdrop-blur-sm border-2 border-gold/30 rounded-lg p-6 md:p-10 mt-8 md:mt-12">
-          <h2 className="font-serif text-3xl md:text-4xl text-gold-dark mb-4">Palheta de Cores</h2>
+          <h2 className="font-serif text-3xl md:text-4xl text-gold-dark mb-4">{settings.colorPaletteText}</h2>
           <p className="font-sans text-ink/70 mb-8 max-w-lg mx-auto text-sm md:text-base">
-            {settings.colorPaletteText}
+            Sua presença é o nosso maior presente, mas se desejar nos presentear, sugerimos estas cores para os trajes.
           </p>
           <div className="flex justify-center items-center gap-3 mt-6">
             {(settings.colorPalette || []).map((color, index) => (

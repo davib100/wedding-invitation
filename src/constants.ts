@@ -9,6 +9,7 @@ export const INITIAL_SETTINGS: WeddingSettings = {
   eventDate: '2024-12-14T16:00:00.000Z', // Example date
   eventLocation: 'Villa Giardini',
   eventAddress: 'St. de Mansões Park Way Q 3 - Núcleo Bandeirante, Brasília - DF',
+  eventAddressReference: 'Próximo ao local X',
   mapCoordinates: { lat: -15.8310344, lng: -47.9546379 },
   musicUrl: 'https://cdn.pixabay.com/audio/2022/02/07/audio_1947b74447.mp3', // Romantic Piano royalty free
   heroImageUrl: 'https://picsum.photos/800/1200?grayscale',

@@ -294,6 +294,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                             />
                           </div>
                           <div>
+                            <Label htmlFor="eventAddressReference">Ponto de Referência</Label>
+                            <Input 
+                              id="eventAddressReference" 
+                              name="eventAddressReference" 
+                              value={settings.eventAddressReference || ''} 
+                              onChange={handleSettingsChange} 
+                              placeholder="Ex: Próximo à ponte"
+                            />
+                          </div>
+                          <div>
                             <Label>Coordenadas do Mapa</Label>
                             <div className="grid grid-cols-2 gap-4 mb-4">
                               <div>

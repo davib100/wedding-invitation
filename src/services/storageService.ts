@@ -90,12 +90,16 @@ export const getSettings = async (): Promise<WeddingSettings> => {
 
 export const saveSettings = async (settings: Partial<WeddingSettings>): Promise<void> => {
   try {
-    const { mapCoordinates, colorPalette, colorPaletteText, ...rest } = settings;
+    const { mapCoordinates, colorPalette, colorPaletteText, eventAddressReference, ...rest } = settings;
     let dbSettings: any = { ...rest };
 
     if (mapCoordinates) {
       dbSettings.lat = mapCoordinates.lat;
       dbSettings.lng = mapCoordinates.lng;
+    }
+    
+    if (eventAddressReference) {
+        dbSettings.eventAddressReference = eventAddressReference;
     }
     
     // Map application properties to the correct database column names

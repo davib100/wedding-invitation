@@ -17,7 +17,6 @@ const MapView: React.FC<MapViewProps> = ({ settings }) => {
   useEffect(() => {
     if (!mapCoordinates || !containerRef.current) return;
 
-    // Se o mapa já existe, apenas atualiza a visualização
     if (mapRef.current && isInitializedRef.current) {
       mapRef.current.setView([mapCoordinates.lat, mapCoordinates.lng], 16);
       if (markerRef.current) {
@@ -26,7 +25,6 @@ const MapView: React.FC<MapViewProps> = ({ settings }) => {
       return;
     }
 
-    // Limpa instância anterior do Leaflet
     const container = L.DomUtil.get('map-view');
     if (container != null) {
       if (container._leaflet_id != null) {
@@ -35,17 +33,19 @@ const MapView: React.FC<MapViewProps> = ({ settings }) => {
     }
 
     try {
-      // Initialize map
       const map = L.map('map-view', {
         center: [mapCoordinates.lat, mapCoordinates.lng],
         zoom: 16,
-        zoomControl: true,
+        zoomControl: false,
         attributionControl: true,
-        scrollWheelZoom: true,
-        dragging: true
+        scrollWheelZoom: false,
+        dragging: false,
+        touchZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false,
       });
 
-      // Add tile layer
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
@@ -54,11 +54,9 @@ const MapView: React.FC<MapViewProps> = ({ settings }) => {
       mapRef.current = map;
       isInitializedRef.current = true;
 
-      // Add marker
       const marker = L.marker([mapCoordinates.lat, mapCoordinates.lng]).addTo(map);
       markerRef.current = marker;
 
-      // Força o mapa a recalcular seu tamanho após a renderização
       setTimeout(() => {
         if (mapRef.current) {
           mapRef.current.invalidateSize({ pan: false });
@@ -71,7 +69,6 @@ const MapView: React.FC<MapViewProps> = ({ settings }) => {
     }
   }, [mapCoordinates]);
 
-  // Cleanup ao desmontar o componente
   useEffect(() => {
     return () => {
       if (mapRef.current) {
@@ -89,17 +86,30 @@ const MapView: React.FC<MapViewProps> = ({ settings }) => {
   }, []);
 
   return (
-    <div 
-      id="map-view" 
-      ref={containerRef}
-      style={{ 
-        height: '100%', 
-        width: '100%', 
-        minHeight: '400px',
-        position: 'relative',
-        zIndex: 0
-      }}
-    />
+    <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+      <div 
+        id="map-view" 
+        ref={containerRef}
+        style={{ 
+          height: '100%', 
+          width: '100%', 
+          minHeight: '400px',
+          position: 'relative',
+          zIndex: 0
+        }}
+      />
+      <div 
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'transparent',
+          zIndex: 10
+        }}
+      ></div>
+    </div>
   );
 };
 

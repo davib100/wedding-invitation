@@ -1,3 +1,4 @@
+
 import { WeddingSettings } from '../types';
 
 export const ADMIN_EMAIL = 'davib.aguiar@gmail.com';

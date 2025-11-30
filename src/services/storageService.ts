@@ -1,3 +1,4 @@
+
 import { RSVP, WeddingSettings } from '../../types';
 import { INITIAL_SETTINGS } from '../constants';
 import { supabase } from '../supabase';
@@ -28,7 +29,8 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       let colorPalette = rest.colorPalette || INITIAL_SETTINGS.colorPalette;
       if (typeof colorPalette === 'string') {
         try {
-          colorPalette = JSON.parse(colorPalette);
+          // Supabase might return a string representation of the array
+          colorPalette = JSON.parse(colorPalette.replace(/\\"/g, '"'));
         } catch (e) {
           console.error("Error parsing colorPalette, using default.", e);
           colorPalette = INITIAL_SETTINGS.colorPalette;
@@ -93,7 +95,7 @@ export const saveSettings = async (settings: Partial<WeddingSettings>): Promise<
       dbSettings.lng = mapCoordinates.lng;
     }
 
-    // Ensure colorPalette is a JSON string if it's an array
+    // Ensure colorPalette is a JSON string if it's an array and map to correct column
     if (Array.isArray(dbSettings.colorPalette)) {
       dbSettings.colorPalette = JSON.stringify(dbSettings.colorPalette);
     }

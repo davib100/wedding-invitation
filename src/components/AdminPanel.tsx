@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -60,6 +61,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
         title: "Erro ao carregar",
         description: "Não foi possível carregar as configurações.",
         variant: "destructive",
+        className: "bg-paper border-destructive",
       });
     } finally {
       setIsLoading(false);
@@ -106,10 +108,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
       return { ...prev, colorPalette: newPalette };
     });
   };
-
-  const handlePinLocationChange = (location: { x: number; y: number }) => {
-    setSettings(prev => ({ ...prev, mapPinLocation: location }));
-  };
   
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
@@ -138,7 +136,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
       toast({
         title: "Sucesso!",
         description: "As configurações foram salvas.",
-        className: "bg-green-100 border-green-300 text-green-800",
+        className: "bg-paper border-green-300 text-green-800",
       });
       onSettingsUpdate(); // Notify App.tsx to refetch
     } catch (error: any) {
@@ -147,6 +145,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
         title: "Erro ao Salvar",
         description: `Não foi possível salvar. Motivo: ${error.message || 'Erro desconhecido'}`,
         variant: "destructive",
+        className: "bg-paper border-destructive",
       });
     } finally {
       setIsSaving(false);
@@ -221,6 +220,27 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                         </CardContent>
                       </Card>
                       <Card>
+                        <CardHeader><CardTitle>Textos do Convite</CardTitle></CardHeader>
+                        <CardContent>
+                          <div>
+                            <Label htmlFor="introText">Texto de Introdução</Label>
+                            <Textarea id="introText" name="introText" value={settings.introText || ''} onChange={handleSettingsChange} placeholder="Ex: Com a bênção de Deus e de seus pais" />
+                          </div>
+                          <div>
+                            <Label htmlFor="inviteText">Texto do Convite</Label>
+                            <Textarea id="inviteText" name="inviteText" value={settings.inviteText || ''} onChange={handleSettingsChange} placeholder="Ex: Convidam para a celebração de seu casamento" />
+                          </div>
+                          <div>
+                            <Label htmlFor="thankYouText">Texto de Agradecimento</Label>
+                            <Textarea id="thankYouText" name="thankYouText" value={settings.thankYouText || ''} onChange={handleSettingsChange} placeholder="Ex: Agradecemos seu carinho e presença" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                  {view === 'event' && (
+                    <div className="animate-fade-in space-y-8">
+                       <Card>
                         <CardHeader><CardTitle>Data e Hora</CardTitle></CardHeader>
                         <CardContent>
                           <div className='flex flex-col sm:flex-row items-start sm:items-center gap-4'>
@@ -250,27 +270,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                           </div>
                         </CardContent>
                       </Card>
-                      <Card>
-                        <CardHeader><CardTitle>Textos do Convite</CardTitle></CardHeader>
-                        <CardContent>
-                          <div>
-                            <Label htmlFor="introText">Texto de Introdução</Label>
-                            <Textarea id="introText" name="introText" value={settings.introText || ''} onChange={handleSettingsChange} placeholder="Ex: Com a bênção de Deus e de seus pais" />
-                          </div>
-                          <div>
-                            <Label htmlFor="inviteText">Texto do Convite</Label>
-                            <Textarea id="inviteText" name="inviteText" value={settings.inviteText || ''} onChange={handleSettingsChange} placeholder="Ex: Convidam para a celebração de seu casamento" />
-                          </div>
-                          <div>
-                            <Label htmlFor="thankYouText">Texto de Agradecimento</Label>
-                            <Textarea id="thankYouText" name="thankYouText" value={settings.thankYouText || ''} onChange={handleSettingsChange} placeholder="Ex: Agradecemos seu carinho e presença" />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  )}
-                  {view === 'event' && (
-                    <div className="animate-fade-in space-y-8">
                       <Card>
                         <CardHeader><CardTitle>Localização do Evento</CardTitle></CardHeader>
                         <CardContent>
@@ -303,6 +302,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                                   id="mapLat"
                                   type="number"
                                   step="any"
+                                  name="lat"
                                   value={settings.mapCoordinates?.lat || ''}
                                   onChange={(e) => setSettings(prev => ({
                                     ...prev,
@@ -320,6 +320,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                                   id="mapLng"
                                   type="number"
                                   step="any"
+                                  name="lng"
                                   value={settings.mapCoordinates?.lng || ''}
                                   onChange={(e) => setSettings(prev => ({
                                     ...prev,

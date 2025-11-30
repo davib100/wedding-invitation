@@ -15,7 +15,7 @@ import { useIdleTimeout } from '../../hooks/useIdleTimeout';
 import { auth } from '../firebase';
 import { supabase } from '../supabase';
 import InteractiveMap from './InteractiveMap';
-import { useToast } from '../../hooks/use-toast';
+import { useToast } from '../hooks/use-toast';
 
 interface AdminPanelProps {
   isOpen: boolean;

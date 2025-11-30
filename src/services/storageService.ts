@@ -20,17 +20,17 @@ export const getSettings = async (): Promise<WeddingSettings> => {
 
     if (data) {
       // Settings exist, transform and return them
-      const { lat, lng, ...rest } = data;
+      const { lat, lng, color_palette, color_palette_text, ...rest } = data;
       
       const mapCoordinates = (lat !== null && lng !== null) 
         ? { lat, lng } 
         : INITIAL_SETTINGS.mapCoordinates;
       
-      let colorPalette = rest.colorPalette || INITIAL_SETTINGS.colorPalette;
-      if (typeof colorPalette === 'string') {
+      let colorPalette = INITIAL_SETTINGS.colorPalette;
+      if (typeof color_palette === 'string') {
         try {
           // Supabase might return a string representation of the array
-          colorPalette = JSON.parse(colorPalette.replace(/\\"/g, '"'));
+          colorPalette = JSON.parse(color_palette);
         } catch (e) {
           console.error("Error parsing colorPalette, using default.", e);
           colorPalette = INITIAL_SETTINGS.colorPalette;
@@ -42,19 +42,20 @@ export const getSettings = async (): Promise<WeddingSettings> => {
         ...rest,
         mapCoordinates,
         colorPalette: Array.isArray(colorPalette) ? colorPalette : INITIAL_SETTINGS.colorPalette,
-        colorPaletteText: rest.colorPaletteText || INITIAL_SETTINGS.colorPaletteText,
+        colorPaletteText: color_palette_text || INITIAL_SETTINGS.colorPaletteText,
       } as WeddingSettings;
     } else {
       // Settings do not exist, create them using upsert for safety
       console.log('No settings found, creating initial settings...');
       
-      const { mapCoordinates, ...restOfInitialSettings } = INITIAL_SETTINGS;
+      const { mapCoordinates, colorPalette, colorPaletteText, ...restOfInitialSettings } = INITIAL_SETTINGS;
       const dbInitialSettings = {
         ...restOfInitialSettings,
         lat: mapCoordinates?.lat || -15.7801,
         lng: mapCoordinates?.lng || -47.9292,
         id: SETTINGS_ID,
-        colorPalette: JSON.stringify(restOfInitialSettings.colorPalette) // Ensure it's a string
+        color_palette: JSON.stringify(colorPalette),
+        color_palette_text: colorPaletteText,
       };
 
       const { data: newData, error: upsertError } = await supabase
@@ -69,14 +70,15 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       }
       
       console.log('Initial settings created successfully.');
-      const { lat, lng, ...rest } = newData;
-      const parsedColorPalette = JSON.parse(rest.colorPalette || '[]');
+      const { lat, lng, color_palette, color_palette_text, ...rest } = newData;
+      const parsedColorPalette = JSON.parse(color_palette || '[]');
 
       return { 
         ...INITIAL_SETTINGS,
         ...rest, 
         mapCoordinates: { lat, lng },
         colorPalette: parsedColorPalette,
+        colorPaletteText: color_palette_text,
       } as WeddingSettings;
     }
   } catch (error) {
@@ -87,17 +89,20 @@ export const getSettings = async (): Promise<WeddingSettings> => {
 
 export const saveSettings = async (settings: Partial<WeddingSettings>): Promise<void> => {
   try {
-    const { mapCoordinates, ...rest } = settings;
+    const { mapCoordinates, colorPalette, colorPaletteText, ...rest } = settings;
     let dbSettings: any = { ...rest };
 
     if (mapCoordinates) {
       dbSettings.lat = mapCoordinates.lat;
       dbSettings.lng = mapCoordinates.lng;
     }
-
-    // Ensure colorPalette is a JSON string if it's an array and map to correct column
-    if (Array.isArray(dbSettings.colorPalette)) {
-      dbSettings.colorPalette = JSON.stringify(dbSettings.colorPalette);
+    
+    // Map application properties (camelCase) to database columns (snake_case)
+    if (Array.isArray(colorPalette)) {
+      dbSettings.color_palette = JSON.stringify(colorPalette);
+    }
+    if (colorPaletteText) {
+        dbSettings.color_palette_text = colorPaletteText;
     }
     
     // Always set the ID for the upsert condition

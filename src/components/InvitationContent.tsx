@@ -299,18 +299,6 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
             <p className="font-sans text-ink/70 mb-8 max-w-lg mx-auto text-sm md:text-base">
               Terracota & Verde Oliva
             </p>
-            <div className="flex justify-center">
-              <a
-                href="https://meu-cha-de-panela-295da407.base44.app/home"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-3 bg-gold hover:bg-gold-dark text-white font-serif text-base md:text-lg px-6 py-3 md:px-8 md:py-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
-              >
-                <Gift size={20} />
-                Ver Lista de Presentes
-                <ExternalLink size={16} />
-              </a>
-            </div>
         </section>
 
         <section className="max-w-md mx-auto py-6 text-center">
@@ -445,12 +433,23 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                          </div>
                       )}
                       
-                      <button 
-                        type="submit"
-                        className="w-full mt-6 bg-gold text-white font-serif tracking-widest uppercase py-3 hover:bg-gold-dark transition-all duration-300 shadow-md active:scale-95"
-                      >
-                        Confirmar
-                      </button>
+                      <div className="flex flex-col sm:flex-row-reverse gap-4 pt-4">
+                        <button 
+                          type="submit"
+                          className="w-full bg-gold text-white font-serif tracking-widest uppercase py-3 hover:bg-gold-dark transition-all duration-300 shadow-md active:scale-95"
+                        >
+                          Confirmar
+                        </button>
+                        <a
+                          href="https://meu-cha-de-panela-295da407.base44.app/home"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="w-full inline-flex items-center justify-center gap-2 bg-transparent border border-gold text-gold-dark font-serif tracking-widest uppercase py-3 hover:bg-gold/10 transition-all duration-300 shadow-md active:scale-95"
+                        >
+                          <Gift size={16} />
+                          Lista de Presentes
+                        </a>
+                      </div>
                     </form>
                   )}
                 </div>

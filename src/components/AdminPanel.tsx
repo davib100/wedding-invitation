@@ -46,7 +46,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
 
   useIdleTimeout(handleLogout, 3600000); 
 
-  const fetchInitialData = useCallback(async () => {
+  const fetchSettingsOnMount = useCallback(async () => {
+    if (!isOpen) return;
     setIsLoading(true);
     try {
       const currentSettings = await getSettings();
@@ -56,13 +57,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isOpen]);
 
   useEffect(() => {
+    fetchSettingsOnMount();
+
     if (!isOpen) return;
     
-    fetchInitialData();
-
     const fetchRsvps = async () => {
       const { data, error } = await supabase.from('rsvps').select('*').order('firstName', { ascending: true });
       if (error) {
@@ -84,7 +85,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [isOpen, fetchInitialData]);
+  }, [isOpen, fetchSettingsOnMount]);
 
   const handleSettingsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -127,7 +128,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     setIsSaving(true);
     try {
       await saveSettings(settings as WeddingSettings);
-      onSettingsUpdate();
+      onSettingsUpdate(); // Notify App.tsx to refetch
     } catch (error) {
       console.error("Failed to save settings:", error);
     } finally {

@@ -20,17 +20,19 @@ export const getSettings = async (): Promise<WeddingSettings> => {
 
     if (data) {
       // Settings exist, transform and return them
-      const { lat, lng, color_palette, color_palette_text, ...rest } = data;
+      const { lat, lng, colorPalette: dbColorPalette, color_palette_text, ...rest } = data;
       
       const mapCoordinates = (lat !== null && lng !== null) 
         ? { lat, lng } 
         : INITIAL_SETTINGS.mapCoordinates;
       
       let colorPalette = INITIAL_SETTINGS.colorPalette;
-      if (typeof color_palette === 'string') {
-        try {
-          // Supabase might return a string representation of the array
-          colorPalette = JSON.parse(color_palette);
+      // The database column is 'colorPalette' and it's of type jsonb
+      if (dbColorPalette && Array.isArray(dbColorPalette)) {
+        colorPalette = dbColorPalette;
+      } else if (typeof dbColorPalette === 'string') {
+         try {
+          colorPalette = JSON.parse(dbColorPalette);
         } catch (e) {
           console.error("Error parsing colorPalette, using default.", e);
           colorPalette = INITIAL_SETTINGS.colorPalette;
@@ -54,13 +56,13 @@ export const getSettings = async (): Promise<WeddingSettings> => {
         lat: mapCoordinates?.lat || -15.7801,
         lng: mapCoordinates?.lng || -47.9292,
         id: SETTINGS_ID,
-        color_palette: JSON.stringify(colorPalette),
+        colorPalette: colorPalette, // Use the correct column name
         color_palette_text: colorPaletteText,
       };
 
       const { data: newData, error: upsertError } = await supabase
         .from('settings')
-        .upsert(dbInitialSettings)
+        .upsert(dbInitialSettings, { onConflict: 'id' })
         .select()
         .single();
       
@@ -70,14 +72,13 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       }
       
       console.log('Initial settings created successfully.');
-      const { lat, lng, color_palette, color_palette_text, ...rest } = newData;
-      const parsedColorPalette = JSON.parse(color_palette || '[]');
+      const { lat, lng, colorPalette: newDbColorPalette, color_palette_text, ...rest } = newData;
 
       return { 
         ...INITIAL_SETTINGS,
         ...rest, 
         mapCoordinates: { lat, lng },
-        colorPalette: parsedColorPalette,
+        colorPalette: newDbColorPalette,
         colorPaletteText: color_palette_text,
       } as WeddingSettings;
     }
@@ -97,9 +98,10 @@ export const saveSettings = async (settings: Partial<WeddingSettings>): Promise<
       dbSettings.lng = mapCoordinates.lng;
     }
     
-    // Map application properties (camelCase) to database columns (snake_case)
+    // Map application properties to the correct database column names
     if (Array.isArray(colorPalette)) {
-      dbSettings.color_palette = JSON.stringify(colorPalette);
+      // The column name is 'colorPalette' (camelCase) and is of type jsonb
+      dbSettings.colorPalette = colorPalette;
     }
     if (colorPaletteText) {
         dbSettings.color_palette_text = colorPaletteText;

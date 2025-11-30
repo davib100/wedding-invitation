@@ -8,6 +8,7 @@ import { auth } from './src/firebase';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { INITIAL_SETTINGS } from './constants';
 import { Loader2 } from 'lucide-react';
+import { Toaster } from './src/components/ui/toaster';
 
 const AdminPanel = lazy(() => import('./src/components/AdminPanel'));
 
@@ -130,6 +131,7 @@ function App() {
           />
         </Suspense>
       )}
+      <Toaster />
     </div>
   );
 }

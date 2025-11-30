@@ -14,6 +14,7 @@ import { useIdleTimeout } from '../../hooks/useIdleTimeout';
 import { auth } from '../firebase';
 import { supabase } from '../supabase';
 import InteractiveMap from './InteractiveMap';
+import { useToast } from '../../hooks/use-toast';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
   const [view, setView] = useState<AdminView>('general');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
   const handleLogout = async () => {
     sessionStorage.removeItem('isAdminLoggedIn');
@@ -54,10 +56,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
       setSettings(currentSettings);
     } catch (error) {
       console.error("Failed to fetch settings on mount:", error);
+      toast({
+        title: "Erro ao carregar",
+        description: "Não foi possível carregar as configurações.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [isOpen]);
+  }, [isOpen, toast]);
 
   useEffect(() => {
     fetchSettingsOnMount();
@@ -128,9 +135,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     setIsSaving(true);
     try {
       await saveSettings(settings as WeddingSettings);
+      toast({
+        title: "Sucesso!",
+        description: "As configurações foram salvas.",
+        className: "bg-green-100 border-green-300 text-green-800",
+      });
       onSettingsUpdate(); // Notify App.tsx to refetch
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to save settings:", error);
+      toast({
+        title: "Erro ao Salvar",
+        description: `Não foi possível salvar. Motivo: ${error.message || 'Erro desconhecido'}`,
+        variant: "destructive",
+      });
     } finally {
       setIsSaving(false);
     }

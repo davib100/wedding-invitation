@@ -29,6 +29,7 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       let colorPalette = rest.colorPalette || INITIAL_SETTINGS.colorPalette;
       if (typeof colorPalette === 'string') {
         try {
+          // Supabase might return a stringified JSON array
           colorPalette = JSON.parse(colorPalette);
         } catch (e) {
           console.error("Error parsing colorPalette, using default.", e);
@@ -40,7 +41,8 @@ export const getSettings = async (): Promise<WeddingSettings> => {
         ...INITIAL_SETTINGS, // Start with defaults
         ...rest,             // Override with DB data
         mapCoordinates,       // Add the constructed coordinates
-        colorPalette
+        colorPalette: Array.isArray(colorPalette) ? colorPalette : INITIAL_SETTINGS.colorPalette,
+        colorPaletteText: rest.colorPaletteText || INITIAL_SETTINGS.colorPaletteText,
       } as WeddingSettings;
     } else {
       // Settings do not exist, create them using upsert for safety
@@ -68,11 +70,14 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       
       console.log('Initial settings created successfully.');
       const { lat, lng, ...rest } = newData;
+      // We parse it back here to return the correct type to the app
+      const parsedColorPalette = JSON.parse(rest.colorPalette || '[]');
+
       return { 
         ...INITIAL_SETTINGS,
         ...rest, 
         mapCoordinates: { lat, lng },
-        colorPalette: INITIAL_SETTINGS.colorPalette // Use the array from initial settings
+        colorPalette: parsedColorPalette,
       } as WeddingSettings;
     }
   } catch (error) {
@@ -91,11 +96,13 @@ export const saveSettings = async (settings: Partial<WeddingSettings>): Promise<
       dbSettings.lng = mapCoordinates.lng;
     }
 
-    delete dbSettings.mapCoordinates;
     // Ensure colorPalette is a JSON string if it's an array
     if (Array.isArray(dbSettings.colorPalette)) {
       dbSettings.colorPalette = JSON.stringify(dbSettings.colorPalette);
     }
+    
+    // Always set the ID for the where clause
+    dbSettings.id = SETTINGS_ID;
 
     const { error } = await supabase
       .from('settings')

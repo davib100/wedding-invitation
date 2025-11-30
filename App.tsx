@@ -11,17 +11,13 @@ import { Loader2 } from 'lucide-react';
 
 const AdminPanel = lazy(() => import('./src/components/AdminPanel'));
 
-const MAX_FETCH_RETRIES = 3;
-const FETCH_RETRY_DELAY = 2000; // 2 segundos
-
 function App() {
   const [hasOpenedEnvelope, setHasOpenedEnvelope] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [settings, setSettings] = useState<WeddingSettings>(INITIAL_SETTINGS);
   const [user, setUser] = useState<User | null>(null);
-  const [fetchAttempt, setFetchAttempt] = useState(0);
-  const [isLoading, setIsLoading] = useState(true); // Estado de carregamento
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchSettings = useCallback(async () => {
     setIsLoading(true);
@@ -32,15 +28,12 @@ function App() {
       }
     } catch (error: any) {
       console.error('Error fetching settings:', error);
-      // Tenta novamente se houver erro e não tiver atingido o limite
-      if (fetchAttempt < MAX_FETCH_RETRIES) {
-        setTimeout(() => setFetchAttempt(prev => prev + 1), FETCH_RETRY_DELAY);
-      }
+      // Fallback to initial settings on error
+      setSettings(INITIAL_SETTINGS);
     } finally {
       setIsLoading(false);
     }
-  }, [fetchAttempt]);
-
+  }, []);
 
   useEffect(() => {
     fetchSettings();
@@ -76,9 +69,9 @@ function App() {
     setIsAdminOpen(true);
   };
   
-  const handleSettingsUpdate = () => {
-    setFetchAttempt(0);
-    fetchSettings();
+  const handleSettingsUpdate = async () => {
+    // Just refetch the settings to get the latest version
+    await fetchSettings();
   };
   
   useEffect(() => {
@@ -96,7 +89,6 @@ function App() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
-
 
   const renderContent = () => {
     if (isLoading) {

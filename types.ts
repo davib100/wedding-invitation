@@ -26,6 +26,8 @@ export interface WeddingSettings {
   introText: string;
   inviteText: string;
   thankYouText: string;
+  colorPaletteText: string;
+  colorPalette: string[];
 }
 
 export interface AdminUser {

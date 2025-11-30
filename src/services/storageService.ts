@@ -21,14 +21,14 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       // Settings exist, transform and return them
       const { lat, lng, ...rest } = data;
       
-      // Constrói mapCoordinates a partir de lat e lng
       const mapCoordinates = (lat !== null && lng !== null) 
         ? { lat, lng } 
-        : { lat: -15.7801, lng: -47.9292 }; // Coordenadas padrão
+        : INITIAL_SETTINGS.mapCoordinates;
       
       return { 
-        ...rest, 
-        mapCoordinates 
+        ...INITIAL_SETTINGS, // Start with defaults
+        ...rest,             // Override with DB data
+        mapCoordinates       // Add the constructed coordinates
       } as WeddingSettings;
     } else {
       // Settings do not exist, create them using upsert for safety
@@ -56,13 +56,13 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       console.log('Initial settings created successfully.');
       const { lat, lng, ...rest } = newData;
       return { 
+        ...INITIAL_SETTINGS,
         ...rest, 
         mapCoordinates: { lat, lng } 
       } as WeddingSettings;
     }
   } catch (error) {
     console.error('Error in getSettings, returning initial settings as fallback:', error);
-    // Return default settings for the UI to function if db operations fail.
     return INITIAL_SETTINGS;
   }
 };
@@ -72,14 +72,17 @@ export const saveSettings = async (settings: Partial<WeddingSettings>): Promise<
     const { mapCoordinates, ...rest } = settings;
     let dbSettings: any = { ...rest };
 
-    // Converte mapCoordinates para colunas separadas lat/lng
     if (mapCoordinates) {
       dbSettings.lat = mapCoordinates.lat;
       dbSettings.lng = mapCoordinates.lng;
     }
 
-    // Remove mapCoordinates do objeto antes de salvar (não existe no banco)
     delete dbSettings.mapCoordinates;
+    // Ensure colorPalette is a JSON string if it's an array
+    if (Array.isArray(dbSettings.colorPalette)) {
+      dbSettings.colorPalette = JSON.stringify(dbSettings.colorPalette);
+    }
+
 
     const { error } = await supabase
       .from('settings')

@@ -3,7 +3,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { Calendar as CalendarIcon, LogOut, ListChecks, Info, MapPin, X, Loader2, Save } from 'lucide-react';
+import { Calendar as CalendarIcon, LogOut, ListChecks, Info, MapPin, X, Loader2, Save, Palette } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { WeddingSettings, RSVP } from '../../types';
 import { saveSettings, getSettings } from '../services/storageService';
@@ -21,7 +21,7 @@ interface AdminPanelProps {
   onSettingsUpdate: () => void;
 }
 
-type AdminView = 'general' | 'event' | 'rsvps';
+type AdminView = 'general' | 'event' | 'personalization' | 'rsvps';
 
 const Card: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className }) => (
   <div className={cn("bg-white/50 p-6 rounded-lg shadow-sm border border-gold/20", className)}>{children}</div>
@@ -91,6 +91,14 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     setSettings(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleColorPaletteChange = (index: number, color: string) => {
+    setSettings(prev => {
+      const newPalette = [...(prev.colorPalette || [])];
+      newPalette[index] = color;
+      return { ...prev, colorPalette: newPalette };
+    });
+  };
+
   const handlePinLocationChange = (location: { x: number; y: number }) => {
     setSettings(prev => ({ ...prev, mapPinLocation: location }));
   };
@@ -135,6 +143,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     <>
       <Button variant={view === 'general' ? 'secondary' : 'ghost'} className="justify-start w-full" onClick={() => setView('general')}><Info className="mr-2 h-4 w-4"/> Gerais</Button>
       <Button variant={view === 'event' ? 'secondary' : 'ghost'} className="justify-start w-full" onClick={() => setView('event')}><MapPin className="mr-2 h-4 w-4"/> Evento</Button>
+      <Button variant={view === 'personalization' ? 'secondary' : 'ghost'} className="justify-start w-full" onClick={() => setView('personalization')}><Palette className="mr-2 h-4 w-4"/> Personalização</Button>
       <Button variant={view === 'rsvps' ? 'secondary' : 'ghost'} className="justify-start w-full" onClick={() => setView('rsvps')}><ListChecks className="mr-2 h-4 w-4"/> Convidados</Button>
     </>
   );
@@ -243,88 +252,124 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                     </div>
                   )}
                   {view === 'event' && (
-  <div className="animate-fade-in space-y-8">
-    <Card>
-      <CardHeader><CardTitle>Localização do Evento</CardTitle></CardHeader>
-      <CardContent>
-        <div>
-          <Label htmlFor="eventLocation">Nome do Local</Label>
-          <Input 
-            id="eventLocation" 
-            name="eventLocation" 
-            value={settings.eventLocation || ''} 
-            onChange={handleSettingsChange} 
-            placeholder="Ex: Villa Giardini"
-          />
-        </div>
-        <div>
-          <Label htmlFor="eventAddress">Endereço do Evento</Label>
-          <Textarea 
-            id="eventAddress" 
-            name="eventAddress" 
-            value={settings.eventAddress || ''} 
-            onChange={handleSettingsChange} 
-            placeholder="Ex: St. de Mansões Park Way Q 3 - Núcleo Bandeirante, Brasília - DF"
-          />
-        </div>
-        <div>
-          <Label>Coordenadas do Mapa</Label>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <Label htmlFor="mapLat" className="text-xs">Latitude</Label>
-              <Input 
-                id="mapLat"
-                type="number"
-                step="any"
-                value={settings.mapCoordinates?.lat || ''}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  mapCoordinates: {
-                    lat: parseFloat(e.target.value) || 0,
-                    lng: prev.mapCoordinates?.lng || 0
-                  }
-                }))}
-                placeholder="-15.7801"
-              />
-            </div>
-            <div>
-              <Label htmlFor="mapLng" className="text-xs">Longitude</Label>
-              <Input 
-                id="mapLng"
-                type="number"
-                step="any"
-                value={settings.mapCoordinates?.lng || ''}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  mapCoordinates: {
-                    lat: prev.mapCoordinates?.lat || 0,
-                    lng: parseFloat(e.target.value) || 0
-                  }
-                }))}
-                placeholder="-47.9292"
-              />
-            </div>
-          </div>
-          <Label>Clique no mapa para definir a localização</Label>
-          {settings.mapCoordinates && (
-            <InteractiveMap 
-              coordinates={settings.mapCoordinates}
-              onMapClick={(coords) => setSettings(prev => ({
-                ...prev,
-                mapCoordinates: coords
-              }))}
-            />
-          )}
-          {!settings.mapCoordinates && (
-            <div className="bg-gray-100 h-[400px] flex items-center justify-center text-gray-500 rounded border border-dashed">
-              Digite as coordenadas acima ou clique no mapa
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  </div>
-)}
+                    <div className="animate-fade-in space-y-8">
+                      <Card>
+                        <CardHeader><CardTitle>Localização do Evento</CardTitle></CardHeader>
+                        <CardContent>
+                          <div>
+                            <Label htmlFor="eventLocation">Nome do Local</Label>
+                            <Input 
+                              id="eventLocation" 
+                              name="eventLocation" 
+                              value={settings.eventLocation || ''} 
+                              onChange={handleSettingsChange} 
+                              placeholder="Ex: Villa Giardini"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="eventAddress">Endereço do Evento</Label>
+                            <Textarea 
+                              id="eventAddress" 
+                              name="eventAddress" 
+                              value={settings.eventAddress || ''} 
+                              onChange={handleSettingsChange} 
+                              placeholder="Ex: St. de Mansões Park Way Q 3 - Núcleo Bandeirante, Brasília - DF"
+                            />
+                          </div>
+                          <div>
+                            <Label>Coordenadas do Mapa</Label>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                              <div>
+                                <Label htmlFor="mapLat" className="text-xs">Latitude</Label>
+                                <Input 
+                                  id="mapLat"
+                                  type="number"
+                                  step="any"
+                                  value={settings.mapCoordinates?.lat || ''}
+                                  onChange={(e) => setSettings(prev => ({
+                                    ...prev,
+                                    mapCoordinates: {
+                                      lat: parseFloat(e.target.value) || 0,
+                                      lng: prev.mapCoordinates?.lng || 0
+                                    }
+                                  }))}
+                                  placeholder="-15.7801"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="mapLng" className="text-xs">Longitude</Label>
+                                <Input 
+                                  id="mapLng"
+                                  type="number"
+                                  step="any"
+                                  value={settings.mapCoordinates?.lng || ''}
+                                  onChange={(e) => setSettings(prev => ({
+                                    ...prev,
+                                    mapCoordinates: {
+                                      lat: prev.mapCoordinates?.lat || 0,
+                                      lng: parseFloat(e.target.value) || 0
+                                    }
+                                  }))}
+                                  placeholder="-47.9292"
+                                />
+                              </div>
+                            </div>
+                            <Label>Clique no mapa para definir a localização</Label>
+                            {settings.mapCoordinates && (
+                              <InteractiveMap 
+                                coordinates={settings.mapCoordinates}
+                                onMapClick={(coords) => setSettings(prev => ({
+                                  ...prev,
+                                  mapCoordinates: coords
+                                }))}
+                              />
+                            )}
+                            {!settings.mapCoordinates && (
+                              <div className="bg-gray-100 h-[400px] flex items-center justify-center text-gray-500 rounded border border-dashed">
+                                Digite as coordenadas acima ou clique no mapa
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                  {view === 'personalization' && (
+                    <div className="animate-fade-in space-y-8">
+                      <Card>
+                        <CardHeader><CardTitle>Paleta de Cores</CardTitle></CardHeader>
+                        <CardContent>
+                          <div>
+                            <Label htmlFor="colorPaletteText">Texto da Paleta</Label>
+                            <Input
+                              id="colorPaletteText"
+                              name="colorPaletteText"
+                              value={settings.colorPaletteText || ''}
+                              onChange={handleSettingsChange}
+                              placeholder="Ex: Terracota & Verde Oliva"
+                            />
+                          </div>
+                          <div>
+                            <Label>Cores</Label>
+                            <div className="flex items-center gap-4 mt-2">
+                              {settings.colorPalette?.map((color, index) => (
+                                <div key={index} className="flex flex-col items-center gap-2">
+                                  <Label htmlFor={`color-${index}`} className="text-xs">Cor {index + 1}</Label>
+                                  <Input
+                                    id={`color-${index}`}
+                                    type="color"
+                                    value={color}
+                                    onChange={(e) => handleColorPaletteChange(index, e.target.value)}
+                                    className="w-16 h-16 p-1"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
                   {view === 'rsvps' && (
                     <div className="animate-fade-in">
                       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">

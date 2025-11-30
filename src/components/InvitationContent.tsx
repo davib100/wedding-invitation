@@ -127,6 +127,10 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
     });
   };
 
+  const mapLink = settings.mapCoordinates
+    ? `https://www.google.com/maps/search/?api=1&query=${settings.mapCoordinates.lat},${settings.mapCoordinates.lng}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.eventAddress)}`;
+
   return (
     <div className="relative w-full min-h-screen bg-paper bg-paper-texture overflow-y-auto animate-fade-in">
       <audio ref={audioRef} src={settings.musicUrl} loop />
@@ -269,7 +273,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
         <section className="w-full pt-4 md:pt-8">
           <div 
             className="relative w-full bg-paper-dark p-2 shadow-inner border border-gold/20 rotate-1 transition-transform hover:rotate-0 duration-500 rounded-sm"
-            style={{ height: '450px' }} // Altura fixa em pixels para garantir renderização
+            style={{ height: '450px' }}
           >
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gold text-white p-2 rounded-full shadow-lg z-10">
               <MapPin size={20} />
@@ -280,7 +284,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
           </div>
           <div className="text-center mt-4">
             <a 
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.eventAddress)}`}
+              href={mapLink}
               target="_blank"
               rel="noreferrer"
               className="text-xs font-sans tracking-widest text-gold-dark hover:underline uppercase"

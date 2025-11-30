@@ -1,4 +1,4 @@
-import { WeddingSettings } from './types';
+import { WeddingSettings } from '../types';
 
 export const ADMIN_EMAIL = 'davib.aguiar@gmail.com';
 
@@ -15,7 +15,7 @@ export const INITIAL_SETTINGS: WeddingSettings = {
   inviteText: 'Convidam para a cerimônia religiosa de seu casamento.',
   thankYouText: 'Sua presença tornará este dia ainda mais especial.',
   colorPaletteText: 'Terracota & Verde Oliva',
-  colorPalette: ['#B87333', '#556B2F', '#D4AF37', '#F5F5DC'],
+  colorPalette: ['#8f3d18', '#c66530', '#79824d', '#5e5a3d'],
 };
 
 export const STORAGE_KEYS = {

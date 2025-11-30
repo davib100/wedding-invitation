@@ -25,11 +25,9 @@ export const getSettings = async (): Promise<WeddingSettings> => {
         ? { lat, lng } 
         : INITIAL_SETTINGS.mapCoordinates;
       
-      // Handle colorPalette which might be a string
       let colorPalette = rest.colorPalette || INITIAL_SETTINGS.colorPalette;
       if (typeof colorPalette === 'string') {
         try {
-          // Supabase might return a stringified JSON array
           colorPalette = JSON.parse(colorPalette);
         } catch (e) {
           console.error("Error parsing colorPalette, using default.", e);
@@ -38,9 +36,9 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       }
 
       return { 
-        ...INITIAL_SETTINGS, // Start with defaults
-        ...rest,             // Override with DB data
-        mapCoordinates,       // Add the constructed coordinates
+        ...INITIAL_SETTINGS,
+        ...rest,
+        mapCoordinates,
         colorPalette: Array.isArray(colorPalette) ? colorPalette : INITIAL_SETTINGS.colorPalette,
         colorPaletteText: rest.colorPaletteText || INITIAL_SETTINGS.colorPaletteText,
       } as WeddingSettings;
@@ -70,7 +68,6 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       
       console.log('Initial settings created successfully.');
       const { lat, lng, ...rest } = newData;
-      // We parse it back here to return the correct type to the app
       const parsedColorPalette = JSON.parse(rest.colorPalette || '[]');
 
       return { 
@@ -101,13 +98,13 @@ export const saveSettings = async (settings: Partial<WeddingSettings>): Promise<
       dbSettings.colorPalette = JSON.stringify(dbSettings.colorPalette);
     }
     
-    // Always set the ID for the where clause
+    // Always set the ID for the upsert condition
     dbSettings.id = SETTINGS_ID;
 
+    // Use upsert to either update the existing settings or create them if they don't exist.
     const { error } = await supabase
       .from('settings')
-      .update(dbSettings)
-      .eq('id', SETTINGS_ID);
+      .upsert(dbSettings, { onConflict: 'id' });
 
     if (error) {
       console.error('Error saving settings:', error);

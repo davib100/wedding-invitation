@@ -47,12 +47,6 @@ const GiftListPage = () => {
             <p className="max-w-2xl mx-auto text-ink/60">Seu carinho é o maior presente, mas se desejar nos mimar, preparamos uma lista com itens que amamos.</p>
         </div>
 
-        <section className="mb-8">
-          <div className="w-full rounded-md overflow-hidden">
-             <img src="https://picsum.photos/seed/wedding-banner/1200/400" alt="Banner de ofertas" className="w-full h-auto" />
-          </div>
-        </section>
-
         <section>
           <h2 className="font-serif text-2xl text-ink mb-6">Mimos Disponiveis</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">

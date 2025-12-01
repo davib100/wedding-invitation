@@ -20,7 +20,7 @@ export const getSettings = async (): Promise<WeddingSettings> => {
 
     if (data) {
       // Settings exist, transform and return them
-      const { lat, lng, color_palette, color_palette_text, ...rest } = data;
+      const { lat, lng, color_palette, color_palette_text, event_address_reference, ...rest } = data;
       
       const mapCoordinates = (lat !== null && lng !== null) 
         ? { lat, lng } 
@@ -45,12 +45,13 @@ export const getSettings = async (): Promise<WeddingSettings> => {
         mapCoordinates,
         colorPalette: Array.isArray(colorPalette) ? colorPalette : INITIAL_SETTINGS.colorPalette,
         colorPaletteText: color_palette_text || INITIAL_SETTINGS.colorPaletteText,
+        eventAddressReference: event_address_reference, // Map snake_case to camelCase
       } as WeddingSettings;
     } else {
       // Settings do not exist, create them using upsert for safety
       console.log('No settings found, creating initial settings...');
       
-      const { mapCoordinates, colorPalette, colorPaletteText, ...restOfInitialSettings } = INITIAL_SETTINGS;
+      const { mapCoordinates, colorPalette, colorPaletteText, eventAddressReference, ...restOfInitialSettings } = INITIAL_SETTINGS;
       const dbInitialSettings = {
         ...restOfInitialSettings,
         lat: mapCoordinates?.lat || -15.7801,
@@ -58,6 +59,7 @@ export const getSettings = async (): Promise<WeddingSettings> => {
         id: SETTINGS_ID,
         color_palette: colorPalette, 
         color_palette_text: colorPaletteText,
+        event_address_reference: eventAddressReference || '', // Add snake_case version
       };
 
       const { data: newData, error: upsertError } = await supabase
@@ -72,7 +74,7 @@ export const getSettings = async (): Promise<WeddingSettings> => {
       }
       
       console.log('Initial settings created successfully.');
-      const { lat, lng, color_palette, color_palette_text, ...rest } = newData;
+      const { lat, lng, color_palette, color_palette_text, event_address_reference, ...rest } = newData;
 
       return { 
         ...INITIAL_SETTINGS,
@@ -80,6 +82,7 @@ export const getSettings = async (): Promise<WeddingSettings> => {
         mapCoordinates: { lat, lng },
         colorPalette: color_palette,
         colorPaletteText: color_palette_text,
+        eventAddressReference: event_address_reference, // Map back on creation as well
       } as WeddingSettings;
     }
   } catch (error) {
@@ -98,15 +101,16 @@ export const saveSettings = async (settings: Partial<WeddingSettings>): Promise<
       dbSettings.lng = mapCoordinates.lng;
     }
     
-    if (eventAddressReference) {
-        dbSettings.eventAddressReference = eventAddressReference;
+    // Check if the property exists on the partial settings object before adding it
+    if (eventAddressReference !== undefined) {
+        dbSettings.event_address_reference = eventAddressReference; // Map camelCase to snake_case
     }
     
     // Map application properties to the correct database column names
     if (Array.isArray(colorPalette)) {
       dbSettings.color_palette = colorPalette;
     }
-    if (colorPaletteText) {
+    if (colorPaletteText !== undefined) {
         dbSettings.color_palette_text = colorPaletteText;
     }
     

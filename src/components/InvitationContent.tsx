@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MapPin, ChevronsDown, Volume2, VolumeX, Gift, ExternalLink, Check } from 'lucide-react';
+import { MapPin, ChevronsDown, Volume2, VolumeX, Gift, ExternalLink, Check, ChevronDown } from 'lucide-react';
 import { WeddingSettings } from '../../types';
 import { addRSVP } from '../services/storageService';
 import MapView from './MapView';
@@ -16,6 +16,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const [footerClicks, setFooterClicks] = useState(0);
   const [isRsvpOpen, setIsRsvpOpen] = useState(false);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
 
   // RSVP Form State
   const [formData, setFormData] = useState({
@@ -311,21 +312,33 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
           </div>
         </section>
 
-        <section className="w-full max-w-4xl mx-auto text-center bg-paper/90 backdrop-blur-sm border-2 border-gold/30 rounded-lg p-6 md:p-10 mt-8 md:mt-12">
-          <h2 className="font-serif text-3xl md:text-4xl text-gold-dark mb-4">{settings.colorPaletteText}</h2>
-          <p className="font-sans text-ink/70 mb-8 max-w-lg mx-auto text-sm md:text-base">
-            Sua presença é o nosso maior presente, mas se desejar nos presentear, sugerimos estas cores para os trajes.
-          </p>
-          <div className="flex justify-center items-center gap-3 mt-6">
-            {(settings.colorPalette || []).map((color, index) => (
-              <div 
-                key={index} 
-                className="w-12 h-12 rounded-full border-2 border-white/50 shadow-md" 
-                style={{ backgroundColor: color }}
-              ></div>
-            ))}
-          </div>
+        <section className="w-full max-w-xl mx-auto text-center mt-8 md:mt-12">
+            <button 
+                onClick={() => setIsPaletteOpen(!isPaletteOpen)}
+                className="w-full bg-paper/90 backdrop-blur-sm border-2 border-gold/30 rounded-lg p-4 md:p-6 flex justify-between items-center transition-all duration-300 hover:border-gold/50"
+            >
+                <h2 className="font-serif text-xl md:text-2xl text-gold-dark">Paleta de Cores para Amigas</h2>
+                <ChevronDown className={`w-6 h-6 text-gold-dark transition-transform duration-500 ${isPaletteOpen ? 'rotate-180' : 'rotate-0'}`} />
+            </button>
+            <div className={`transition-all duration-700 ease-in-out overflow-hidden ${isPaletteOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className="bg-paper/50 backdrop-blur-sm border-x-2 border-b-2 border-gold/30 rounded-b-lg p-6 md:p-10 -mt-2">
+                    <h2 className="font-serif text-2xl md:text-3xl text-gold-dark mb-4">{settings.colorPaletteText}</h2>
+                    <p className="font-sans text-ink/70 mb-8 max-w-lg mx-auto text-sm md:text-base">
+                        Sua presença é o nosso maior presente, mas se desejar nos presentear, sugerimos estas cores para os trajes.
+                    </p>
+                    <div className="flex justify-center items-center gap-3 mt-6">
+                        {(settings.colorPalette || []).map((color, index) => (
+                        <div 
+                            key={index} 
+                            className="w-12 h-12 rounded-full border-2 border-white/50 shadow-md" 
+                            style={{ backgroundColor: color }}
+                        ></div>
+                        ))}
+                    </div>
+                </div>
+            </div>
         </section>
+
 
         <section className="max-w-md mx-auto py-6 text-center">
            <p className="font-script text-2xl md:text-3xl text-ink/80 leading-relaxed">

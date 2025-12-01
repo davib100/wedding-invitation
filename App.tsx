@@ -1,4 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Envelope } from './src/components/Envelope';
 import { InvitationContent } from './src/components/InvitationContent';
 import { LoginModal } from './src/components/LoginModal';
@@ -9,10 +10,11 @@ import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { INITIAL_SETTINGS } from './constants';
 import { Loader2 } from 'lucide-react';
 import { Toaster } from './src/components/ui/toaster';
+import GiftListPage from './src/pages/GiftListPage';
 
 const AdminPanel = lazy(() => import('./src/components/AdminPanel'));
 
-function App() {
+const InvitationPage = () => {
   const [hasOpenedEnvelope, setHasOpenedEnvelope] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -29,7 +31,6 @@ function App() {
       }
     } catch (error: any) {
       console.error('Error fetching settings:', error);
-      // Fallback to initial settings on error
       setSettings(INITIAL_SETTINGS);
     } finally {
       setIsLoading(false);
@@ -71,7 +72,6 @@ function App() {
   };
   
   const handleSettingsUpdate = async () => {
-    // Just refetch the settings to get the latest version
     await fetchSettings();
   };
   
@@ -109,7 +109,7 @@ function App() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-black">
+    <>
       {!hasOpenedEnvelope ? (
         <Envelope onOpen={() => setHasOpenedEnvelope(true)} />
       ) : (
@@ -131,6 +131,18 @@ function App() {
           />
         </Suspense>
       )}
+    </>
+  );
+}
+
+function App() {
+  const location = useLocation();
+  return (
+    <div className="w-full min-h-screen bg-black">
+      <Routes location={location}>
+        <Route path="/" element={<InvitationPage />} />
+        <Route path="/lista-de-presentes" element={<GiftListPage />} />
+      </Routes>
       <Toaster />
     </div>
   );

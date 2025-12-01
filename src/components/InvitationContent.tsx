@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { MapPin, ChevronsDown, Volume2, VolumeX, Gift, ExternalLink, Check, ChevronDown } from 'lucide-react';
 import { WeddingSettings } from '../../types';
 import { addRSVP } from '../services/storageService';
@@ -479,14 +480,12 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                         >
                           Confirmar
                         </button>
-                        <a
-                          href="https://meu-cha-de-panela-295da407.base44.app/home"
-                          target="_blank"
-                          rel="noreferrer"
+                        <Link
+                          to="/lista-de-presentes"
                           className="w-full inline-flex items-center justify-center bg-gold hover:bg-gold-dark text-white font-serif tracking-widest uppercase py-3 transition-all duration-300 shadow-md active:scale-95 text-sm"
                         >
                           Contribuir com Mimos
-                        </a>
+                        </Link>
                       </div>
                     </form>
                   )}

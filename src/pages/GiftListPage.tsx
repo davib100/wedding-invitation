@@ -47,12 +47,9 @@ const GiftListPage = () => {
       </header>
 
       <main className="container mx-auto p-4 md:p-8">
-        <div className="w-full bg-gold-dark rounded-md p-6 md:p-10 mb-8 text-white flex flex-col md:flex-row items-center justify-between gap-6">
-          <div>
-            <h1 className="font-serif text-3xl md:text-4xl mb-2">Lista de Presentes</h1>
-            <p className="max-w-lg text-gold/60">Seu carinho é o maior presente, mas se desejar nos mimar, preparamos uma lista com itens que amamos.</p>
-          </div>
-          <Gift size={60} className="text-gold/50 shrink-0" />
+        <div className="text-center mb-12">
+            <h1 className="font-serif text-4xl md:text-5xl text-gold-dark mb-2">Lista de Presentes</h1>
+            <p className="max-w-2xl mx-auto text-ink/60">Seu carinho é o maior presente, mas se desejar nos mimar, preparamos uma lista com itens que amamos.</p>
         </div>
 
         <section className="mb-8">
@@ -71,7 +68,7 @@ const GiftListPage = () => {
         </section>
       </main>
 
-      <footer className="text-center py-8 mt-8">
+      <footer className="text-center py-8 mt-8 border-t border-gold/10">
          <p className="font-sans text-[10px] tracking-widest text-ink/40">
            Lista de Presentes de Rosângela & Davi
          </p>

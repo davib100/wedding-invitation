@@ -36,12 +36,7 @@ const GiftListPage = () => {
             <span className="font-serif text-lg">Voltar ao Convite</span>
           </Link>
           <div className="flex items-center gap-4">
-            <button className="text-ink/70 hover:text-ink">
-              <Search size={22} />
-            </button>
-            <button className="text-ink/70 hover:text-ink">
-              <ShoppingCart size={22} />
-            </button>
+            {/* Icons removed as requested */}
           </div>
         </div>
       </header>

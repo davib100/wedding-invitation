@@ -4,10 +4,10 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { Calendar as CalendarIcon, LogOut, ListChecks, Info, MapPin, X, Loader2, Save, Palette } from 'lucide-react';
+import { Calendar as CalendarIcon, LogOut, ListChecks, Info, MapPin, X, Loader2, Save, Palette, Gift as GiftIcon, Trash2, PlusCircle } from 'lucide-react';
 import { signOut } from 'firebase/auth';
-import { WeddingSettings, RSVP } from '../../types';
-import { saveSettings, getSettings } from '../services/storageService';
+import { WeddingSettings, RSVP, Gift } from '../../types';
+import { saveSettings, getSettings, getGifts, addGift, deleteGift } from '../services/storageService';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { cn } from '../lib/utils';
@@ -23,7 +23,7 @@ interface AdminPanelProps {
   onSettingsUpdate: () => void;
 }
 
-type AdminView = 'general' | 'event' | 'personalization' | 'rsvps';
+type AdminView = 'general' | 'event' | 'personalization' | 'rsvps' | 'gifts';
 
 const Card: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className }) => (
   <div className={cn("bg-white/50 p-6 rounded-lg shadow-sm border border-gold/20", className)}>{children}</div>
@@ -36,6 +36,8 @@ const CardContent: React.FC<{ children: React.ReactNode }> = ({ children }) => <
 const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpdate }) => {
   const [settings, setSettings] = useState<Partial<WeddingSettings>>({});
   const [rsvps, setRsvps] = useState<RSVP[]>([]);
+  const [gifts, setGifts] = useState<Gift[]>([]);
+  const [newGift, setNewGift] = useState({ name: '', price: '', image_url: '' });
   const [view, setView] = useState<AdminView>('general');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -49,17 +51,26 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
 
   useIdleTimeout(handleLogout, 3600000); 
 
-  const fetchSettingsOnMount = useCallback(async () => {
+  const fetchAllData = useCallback(async () => {
     if (!isOpen) return;
     setIsLoading(true);
     try {
-      const currentSettings = await getSettings();
+      const [currentSettings, giftsData, rsvpsData] = await Promise.all([
+        getSettings(),
+        getGifts(),
+        supabase.from('rsvps').select('*').order('firstName', { ascending: true })
+      ]);
+      
       setSettings(currentSettings);
-    } catch (error) {
-      console.error("Failed to fetch settings on mount:", error);
+      setGifts(giftsData);
+      if (rsvpsData.error) throw rsvpsData.error;
+      setRsvps(rsvpsData.data as RSVP[]);
+
+    } catch (error: any) {
+      console.error("Failed to fetch data on mount:", error);
       toast({
         title: "Erro ao carregar",
-        description: "Não foi possível carregar as configurações.",
+        description: `Não foi possível carregar os dados. ${error.message}`,
         variant: "destructive",
         className: "bg-paper border-destructive",
       });
@@ -69,32 +80,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
   }, [isOpen, toast]);
 
   useEffect(() => {
-    fetchSettingsOnMount();
+    fetchAllData();
 
     if (!isOpen) return;
     
-    const fetchRsvps = async () => {
-      const { data, error } = await supabase.from('rsvps').select('*').order('firstName', { ascending: true });
-      if (error) {
-        console.error("Error fetching RSVPs:", error);
-      } else if (data) {
-        setRsvps(data as RSVP[]);
-      }
-    };
-    fetchRsvps();
+    const rsvpsChannel = supabase
+      .channel('rsvps-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'rsvps' }, () => fetchAllData())
+      .subscribe();
 
-    const channel = supabase
-      .channel('rsvps')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'rsvps' }, (payload) => {
-          console.log('Change received!', payload);
-          fetchRsvps();
-      })
+    const giftsChannel = supabase
+      .channel('gifts-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gifts' }, () => fetchAllData())
       .subscribe();
       
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(rsvpsChannel);
+      supabase.removeChannel(giftsChannel);
     };
-  }, [isOpen, fetchSettingsOnMount]);
+  }, [isOpen, fetchAllData]);
 
   const handleSettingsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -152,6 +156,46 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     }
   };
 
+  const handleGiftInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewGift(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddGift = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (gifts.length >= 12) {
+      toast({ title: 'Limite Atingido', description: 'Você pode cadastrar no máximo 12 presentes.', variant: 'destructive'});
+      return;
+    }
+    const priceAsNumber = parseFloat(newGift.price.replace(',', '.'));
+    if (!newGift.name || isNaN(priceAsNumber)) {
+        toast({ title: 'Dados Inválidos', description: 'Por favor, preencha o nome e um valor válido.', variant: 'destructive'});
+        return;
+    }
+    try {
+      await addGift({
+        name: newGift.name,
+        price: priceAsNumber,
+        image_url: newGift.image_url || null,
+      });
+      setNewGift({ name: '', price: '', image_url: '' }); // Clear form
+      toast({ title: 'Sucesso!', description: 'Presente adicionado.'});
+    } catch (error: any) {
+      toast({ title: 'Erro', description: `Não foi possível adicionar o presente. ${error.message}`, variant: 'destructive'});
+    }
+  };
+
+  const handleDeleteGift = async (id: number) => {
+    if (window.confirm('Tem certeza que deseja excluir este presente?')) {
+        try {
+            await deleteGift(id);
+            toast({ title: 'Sucesso!', description: 'Presente excluído.' });
+        } catch (error: any) {
+            toast({ title: 'Erro', description: `Não foi possível excluir. ${error.message}`, variant: 'destructive'});
+        }
+    }
+  };
+
   if (!isOpen) return null;
 
   const totalGuests = rsvps.reduce((acc, rsvp) => acc + 1 + (rsvp.hasSpouse ? 1 : 0) + (rsvp.childrenCount || 0), 0);
@@ -162,6 +206,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
       <Button variant={view === 'event' ? 'secondary' : 'ghost'} className="justify-start w-full" onClick={() => setView('event')}><MapPin className="mr-2 h-4 w-4"/> Evento</Button>
       <Button variant={view === 'personalization' ? 'secondary' : 'ghost'} className="justify-start w-full" onClick={() => setView('personalization')}><Palette className="mr-2 h-4 w-4"/> Personalização</Button>
       <Button variant={view === 'rsvps' ? 'secondary' : 'ghost'} className="justify-start w-full" onClick={() => setView('rsvps')}><ListChecks className="mr-2 h-4 w-4"/> Convidados</Button>
+      <Button variant={view === 'gifts' ? 'secondary' : 'ghost'} className="justify-start w-full" onClick={() => setView('gifts')}><GiftIcon className="mr-2 h-4 w-4"/> Presentes</Button>
     </>
   );
 
@@ -187,9 +232,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                 <X />
               </Button>
             </div>
-            <nav className="flex justify-center gap-2">
+            <div className="flex justify-center gap-2">
               {navigationButtons}
-            </nav>
+            </div>
           </header>
 
           <main className="flex-1 overflow-y-auto relative">
@@ -434,9 +479,73 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                       </div>
                     </div>
                   )}
+                  {view === 'gifts' && (
+                    <div className="animate-fade-in space-y-8">
+                       <Card>
+                        <CardHeader>
+                          <div className='flex justify-between items-start'>
+                            <div>
+                              <CardTitle>Gerenciar Presentes</CardTitle>
+                              <p className='text-ink/70 font-sans text-sm mt-1'>Adicione ou remova itens da lista de presentes. ({gifts.length}/12)</p>
+                            </div>
+                            <Button size="sm" onClick={handleAddGift} disabled={gifts.length >= 12}><PlusCircle className="mr-2" /> Adicionar</Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          {gifts.length < 12 && (
+                             <form onSubmit={handleAddGift} className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end p-4 border border-dashed rounded-lg">
+                                <div className='sm:col-span-2'>
+                                  <Label htmlFor="giftName">Nome do Presente</Label>
+                                  <Input id="giftName" name="name" value={newGift.name} onChange={handleGiftInputChange} placeholder="Ex: Conjunto de Panelas" />
+                                </div>
+                                <div>
+                                  <Label htmlFor="giftPrice">Preço (R$)</Label>
+                                  <Input id="giftPrice" name="price" value={newGift.price} onChange={handleGiftInputChange} placeholder="Ex: 499,90" />
+                                </div>
+                                <div className='sm:col-span-4'>
+                                  <Label htmlFor="giftImage">URL da Imagem (Opcional)</Label>
+                                  <Input id="giftImage" name="image_url" value={newGift.image_url} onChange={handleGiftInputChange} placeholder="https://exemplo.com/imagem.jpg" />
+                                </div>
+                              </form>
+                          )}
+                          <div className="overflow-x-auto bg-white/50 shadow-sm rounded-lg border border-gold/20 mt-6">
+                            <table className="w-full text-sm">
+                              <thead className="bg-paper-dark text-left">
+                                <tr>
+                                  {['Presente', 'Preço', 'Reservado Por', ''].map(h => 
+                                    <th key={h} className="py-3 px-4 border-b border-gold/20 text-ink font-serif font-semibold whitespace-nowrap">{h}</th>
+                                  )}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {gifts.map(gift => (
+                                  <tr key={gift.id} className={`hover:bg-gold/5 transition-colors duration-200 ${gift.is_reserved ? 'opacity-60 bg-slate-50' : ''}`}>
+                                    <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap flex items-center gap-3">
+                                      {gift.image_url && <img src={gift.image_url} alt={gift.name} className='w-10 h-10 object-cover rounded-sm'/>}
+                                      <span>{gift.name}</span>
+                                    </td>
+                                    <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap">R$ {gift.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                                    <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap">{gift.is_reserved ? `${gift.reserved_by_name} (${gift.reserved_by_phone})` : '-'}</td>
+                                    <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap text-right">
+                                      <Button variant="ghost" size="icon" onClick={() => handleDeleteGift(gift.id)} className="text-red-500 hover:bg-red-100 hover:text-red-700">
+                                        <Trash2 size={16} />
+                                      </Button>
+                                    </td>
+                                  </tr>
+                                ))}
+                                {gifts.length === 0 && (
+                                  <tr><td colSpan={4} className="text-center py-12 font-sans text-ink/50">Nenhum presente cadastrado.</td></tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
                 </div>
 
-                {view !== 'rsvps' && (
+                {view !== 'rsvps' && view !== 'gifts' && (
                   <div className="sticky bottom-0 bg-paper/80 backdrop-blur-sm p-4 border-t border-gold/10 flex justify-end">
                      <Button type="submit" size="lg" disabled={isSaving} className="bg-gold hover:bg-gold-dark text-white shadow-lg w-full sm:w-auto">
                       {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
@@ -454,3 +563,5 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
 };
 
 export default AdminPanel;
+
+    

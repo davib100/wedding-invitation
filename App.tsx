@@ -11,6 +11,7 @@ import { INITIAL_SETTINGS } from './constants';
 import { Loader2 } from 'lucide-react';
 import { Toaster } from './src/components/ui/toaster';
 import GiftListPage from './src/pages/GiftListPage';
+import { setSupabaseAuthToken } from './src/supabase';
 
 const AdminPanel = lazy(() => import('./src/components/AdminPanel'));
 
@@ -40,10 +41,13 @@ const InvitationPage = () => {
   useEffect(() => {
     fetchSettings();
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-    
-      if (!currentUser) {
+      if (currentUser) {
+        const token = await currentUser.getIdToken();
+        await setSupabaseAuthToken(token);
+      } else {
+        await setSupabaseAuthToken(null);
         sessionStorage.removeItem('isAdminLoggedIn');
         setIsAdminOpen(false);
       }

@@ -37,7 +37,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
   const [settings, setSettings] = useState<Partial<WeddingSettings>>({});
   const [rsvps, setRsvps] = useState<RSVP[]>([]);
   const [gifts, setGifts] = useState<Gift[]>([]);
-  const [newGift, setNewGift] = useState({ name: '', price: '', image_url: '' });
+  const [newGift, setNewGift] = useState({ name: '', price: '', image_url: '', quantity: '1' });
   const [view, setView] = useState<AdminView>('general');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -92,6 +92,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     const giftsChannel = supabase
       .channel('gifts-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gifts' }, () => fetchAllData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, () => fetchAllData())
       .subscribe();
       
     return () => {
@@ -168,8 +169,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
       return;
     }
     const priceAsNumber = parseFloat(newGift.price.replace(',', '.'));
-    if (!newGift.name || isNaN(priceAsNumber)) {
-        toast({ title: 'Dados Inválidos', description: 'Por favor, preencha o nome e um valor válido.', variant: 'destructive'});
+    const quantityAsNumber = parseInt(newGift.quantity, 10);
+    if (!newGift.name || isNaN(priceAsNumber) || isNaN(quantityAsNumber) || quantityAsNumber < 1) {
+        toast({ title: 'Dados Inválidos', description: 'Por favor, preencha o nome, um preço válido e uma quantidade de no mínimo 1.', variant: 'destructive'});
         return;
     }
     try {
@@ -177,8 +179,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
         name: newGift.name,
         price: priceAsNumber,
         image_url: newGift.image_url || null,
+        quantity: quantityAsNumber,
       });
-      setNewGift({ name: '', price: '', image_url: '' }); // Clear form
+      setNewGift({ name: '', price: '', image_url: '', quantity: '1' }); // Clear form
       toast({ title: 'Sucesso!', description: 'Presente adicionado.'});
     } catch (error: any) {
       toast({ title: 'Erro', description: `Não foi possível adicionar o presente. ${error.message}`, variant: 'destructive'});
@@ -186,7 +189,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
   };
 
   const handleDeleteGift = async (id: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este presente?')) {
+    if (window.confirm('Tem certeza que deseja excluir este presente? Todas as reservas associadas também serão perdidas.')) {
         try {
             await deleteGift(id);
             toast({ title: 'Sucesso!', description: 'Presente excluído.' });
@@ -493,7 +496,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                         </CardHeader>
                         <CardContent>
                           {gifts.length < 12 && (
-                             <form onSubmit={handleAddGift} className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end p-4 border border-dashed rounded-lg">
+                             <form onSubmit={handleAddGift} className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end p-4 border border-dashed rounded-lg">
                                 <div className='sm:col-span-2'>
                                   <Label htmlFor="giftName">Nome do Presente</Label>
                                   <Input id="giftName" name="name" value={newGift.name} onChange={handleGiftInputChange} placeholder="Ex: Conjunto de Panelas" />
@@ -502,7 +505,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                                   <Label htmlFor="giftPrice">Preço (R$)</Label>
                                   <Input id="giftPrice" name="price" value={newGift.price} onChange={handleGiftInputChange} placeholder="Ex: 499,90" />
                                 </div>
-                                <div className='sm:col-span-4'>
+                                <div>
+                                  <Label htmlFor="giftQuantity">Quantidade</Label>
+                                  <Input id="giftQuantity" name="quantity" type="number" value={newGift.quantity} onChange={handleGiftInputChange} placeholder="1" min="1" />
+                                </div>
+                                <div className='sm:col-span-5'>
                                   <Label htmlFor="giftImage">URL da Imagem (Opcional)</Label>
                                   <Input id="giftImage" name="image_url" value={newGift.image_url} onChange={handleGiftInputChange} placeholder="https://exemplo.com/imagem.jpg" />
                                 </div>
@@ -512,27 +519,41 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                             <table className="w-full text-sm">
                               <thead className="bg-paper-dark text-left">
                                 <tr>
-                                  {['Presente', 'Preço', 'Reservado Por', ''].map(h => 
+                                  {['Presente', 'Preço', 'Reservas', ''].map(h => 
                                     <th key={h} className="py-3 px-4 border-b border-gold/20 text-ink font-serif font-semibold whitespace-nowrap">{h}</th>
                                   )}
                                 </tr>
                               </thead>
                               <tbody>
-                                {gifts.map(gift => (
-                                  <tr key={gift.id} className={`hover:bg-gold/5 transition-colors duration-200 ${gift.is_reserved ? 'opacity-60 bg-slate-50' : ''}`}>
-                                    <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap flex items-center gap-3">
-                                      {gift.image_url && <img src={gift.image_url} alt={gift.name} className='w-10 h-10 object-cover rounded-sm'/>}
-                                      <span>{gift.name}</span>
-                                    </td>
-                                    <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap">R$ {gift.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                                    <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap">{gift.is_reserved ? `${gift.reserved_by_name} (${gift.reserved_by_phone})` : '-'}</td>
-                                    <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap text-right">
-                                      <Button variant="ghost" size="icon" onClick={() => handleDeleteGift(gift.id)} className="text-red-500 hover:bg-red-100 hover:text-red-700">
-                                        <Trash2 size={16} />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                ))}
+                                {gifts.map(gift => {
+                                  const reservedCount = gift.reservations?.length || 0;
+                                  const isFullyReserved = reservedCount >= gift.quantity;
+                                  return (
+                                    <tr key={gift.id} className={`hover:bg-gold/5 transition-colors duration-200 ${isFullyReserved ? 'opacity-60 bg-slate-50' : ''}`}>
+                                      <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap flex items-center gap-3">
+                                        {gift.image_url && <img src={gift.image_url} alt={gift.name} className='w-10 h-10 object-cover rounded-sm'/>}
+                                        <span>{gift.name}</span>
+                                      </td>
+                                      <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap">R$ {gift.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                                      <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap">
+                                        <div className='flex flex-col'>
+                                           <span className={cn('font-semibold', isFullyReserved ? 'text-red-500' : 'text-green-600')}>{reservedCount} / {gift.quantity}</span>
+                                           <div className='w-full bg-gray-200 rounded-full h-1.5 mt-1'>
+                                            <div 
+                                              className={cn('h-1.5 rounded-full', isFullyReserved ? 'bg-red-400' : 'bg-green-500')} 
+                                              style={{width: `${(reservedCount / gift.quantity) * 100}%`}}>
+                                            </div>
+                                           </div>
+                                        </div>
+                                      </td>
+                                      <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap text-right">
+                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteGift(gift.id)} className="text-red-500 hover:bg-red-100 hover:text-red-700">
+                                          <Trash2 size={16} />
+                                        </Button>
+                                      </td>
+                                    </tr>
+                                  )
+                                })}
                                 {gifts.length === 0 && (
                                   <tr><td colSpan={4} className="text-center py-12 font-sans text-ink/50">Nenhum presente cadastrado.</td></tr>
                                 )}

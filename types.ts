@@ -10,15 +10,22 @@ export interface RSVP {
   confirmedAt: string;
 }
 
+export interface Reservation {
+  id: number;
+  created_at: string;
+  gift_id: number;
+  guest_name: string;
+  guest_phone: string;
+}
+
 export interface Gift {
   id: number;
   created_at: string;
   name: string;
   price: number;
-  image_url: string;
-  is_reserved: boolean;
-  reserved_by_name?: string;
-  reserved_by_phone?: string;
+  image_url: string | null;
+  quantity: number;
+  reservations: Reservation[];
 }
 
 export interface WeddingSettings {

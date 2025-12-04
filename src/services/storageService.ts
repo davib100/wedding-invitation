@@ -1,5 +1,5 @@
 
-import { RSVP, WeddingSettings, Gift } from '../../types';
+import { RSVP, WeddingSettings, Gift, Reservation } from '../../types';
 import { INITIAL_SETTINGS } from '../constants';
 import { supabase } from '../supabase';
 
@@ -165,8 +165,15 @@ export const addRSVP = async (rsvpData: Omit<RSVP, 'id' | 'confirmedAt'>): Promi
 
 export const getGifts = async (): Promise<Gift[]> => {
     try {
-        const { data, error } = await supabase.from('gifts').select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabase
+            .from('gifts')
+            .select('*, reservations(*)')
+            .order('created_at', { ascending: false });
+        
         if (error) throw error;
+        
+        // Supabase returns reservations, which is great.
+        // The type `Gift` expects `reservations` to be there.
         return data as Gift[];
     } catch (error) {
         console.error('Error fetching gifts:', error);
@@ -174,11 +181,12 @@ export const getGifts = async (): Promise<Gift[]> => {
     }
 };
 
-export const addGift = async (giftData: Omit<Gift, 'id' | 'created_at' | 'is_reserved'>): Promise<Gift | null> => {
+export const addGift = async (giftData: Omit<Gift, 'id' | 'created_at' | 'reservations'>): Promise<Gift | null> => {
     try {
         const { data, error } = await supabase.from('gifts').insert(giftData).select().single();
         if (error) throw error;
-        return data as Gift;
+        // Return with empty reservations array to match the type
+        return { ...data, reservations: [] } as Gift;
     } catch (error) {
         console.error('Error adding gift:', error);
         throw error;
@@ -187,6 +195,7 @@ export const addGift = async (giftData: Omit<Gift, 'id' | 'created_at' | 'is_res
 
 export const deleteGift = async (id: number): Promise<void> => {
     try {
+        // Deleting a gift will also delete its reservations due to ON DELETE CASCADE
         const { error } = await supabase.from('gifts').delete().eq('id', id);
         if (error) throw error;
     } catch (error) {
@@ -195,19 +204,37 @@ export const deleteGift = async (id: number): Promise<void> => {
     }
 };
 
-export const reserveGift = async (id: number, reservedByName: string, reservedByPhone: string): Promise<void> => {
+export const createReservation = async (giftId: number, guestName: string, guestPhone: string): Promise<void> => {
     try {
-        const { error } = await supabase
+        // We first need to check if the gift still has available quantity
+        const { data: giftData, error: giftError } = await supabase
             .from('gifts')
-            .update({
-                is_reserved: true,
-                reserved_by_name: reservedByName,
-                reserved_by_phone: reservedByPhone,
-            })
-            .eq('id', id);
+            .select('quantity, reservations(count)')
+            .eq('id', giftId)
+            .single();
+
+        if (giftError) throw giftError;
+
+        const reservedCount = giftData.reservations[0]?.count || 0;
+
+        if (reservedCount >= giftData.quantity) {
+            throw new Error("Este presente já atingiu a quantidade máxima de reservas.");
+        }
+
+        // If checks pass, create the new reservation
+        const { error } = await supabase
+            .from('reservations')
+            .insert({
+                gift_id: giftId,
+                guest_name: guestName,
+                guest_phone: guestPhone,
+            });
+            
         if (error) throw error;
+
     } catch (error) {
-        console.error('Error reserving gift:', error);
+        console.error('Error creating reservation:', error);
+        // Re-throw the error so the UI can catch it
         throw error;
     }
 };

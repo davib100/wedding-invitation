@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Gift as GiftIcon, Loader2, PartyPopper } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { getGifts, reserveGift } from '../services/storageService';
+import { getGifts, createReservation } from '../services/storageService';
 import { Gift } from '../../types';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -28,11 +28,11 @@ const ReserveModal: React.FC<ReserveModalProps> = ({ gift, onClose, onSuccess })
         }
         setIsSaving(true);
         try {
-            await reserveGift(gift.id, name, phone);
+            await createReservation(gift.id, name, phone);
             toast({ title: 'Oba!', description: 'Presente reservado com sucesso! Muito obrigado!', className: 'bg-paper border-green-300' });
             onSuccess();
         } catch (error: any) {
-            toast({ title: 'Ops!', description: `Não foi possível reservar o presente. ${error.message}`, variant: 'destructive' });
+            toast({ title: 'Ops!', description: `Não foi possível reservar. ${error.message}`, variant: 'destructive' });
         } finally {
             setIsSaving(false);
         }
@@ -67,18 +67,24 @@ const ReserveModal: React.FC<ReserveModalProps> = ({ gift, onClose, onSuccess })
 
 
 const GiftCard = ({ gift, onReserve }: { gift: Gift, onReserve: (gift: Gift) => void }) => {
-  const isReserved = gift.is_reserved;
+  const reservedCount = gift.reservations?.length || 0;
+  const isFullyReserved = reservedCount >= gift.quantity;
+
   return (
-    <div className={`bg-paper border border-gold/10 rounded-sm overflow-hidden group flex flex-col transition-opacity duration-300 ${isReserved ? 'opacity-50' : ''}`}>
+    <div className={`bg-paper border border-gold/10 rounded-sm overflow-hidden group flex flex-col transition-opacity duration-300 ${isFullyReserved ? 'opacity-50' : ''}`}>
       <div className="overflow-hidden relative">
         <img 
           src={gift.image_url || `https://picsum.photos/seed/${gift.id}/400/400`} 
           alt={gift.name} 
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
         />
-        {isReserved && (
+        {isFullyReserved ? (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <span className="bg-gold text-white font-serif px-3 py-1 rounded-full text-sm">Reservado</span>
+            <span className="bg-gold text-white font-serif px-3 py-1 rounded-full text-sm">Esgotado</span>
+          </div>
+        ) : (
+          <div className="absolute bottom-2 right-2 bg-paper/80 text-ink text-xs px-2 py-1 rounded-full font-sans">
+            {reservedCount} de {gift.quantity} reservados
           </div>
         )}
       </div>
@@ -91,7 +97,7 @@ const GiftCard = ({ gift, onReserve }: { gift: Gift, onReserve: (gift: Gift) => 
 
         <Button 
           onClick={() => onReserve(gift)}
-          disabled={isReserved}
+          disabled={isFullyReserved}
           className="mt-auto w-full bg-gold hover:bg-gold-dark text-white font-serif tracking-widest uppercase py-2 transition-all duration-300 shadow-md active:scale-95 text-sm"
         >
           Presentear
@@ -124,6 +130,9 @@ const GiftListPage = () => {
     const giftsChannel = supabase
       .channel('gifts-list-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gifts' }, () => {
+        fetchGifts();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, () => {
         fetchGifts();
       })
       .subscribe();

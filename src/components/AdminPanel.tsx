@@ -13,7 +13,7 @@ import { Calendar } from './ui/calendar';
 import { cn } from '../lib/utils';
 import { useIdleTimeout } from '../../hooks/useIdleTimeout';
 import { auth } from '../firebase';
-import { supabase } from '../supabase';
+import { supabase, setSupabaseAuthToken } from '../supabase';
 import InteractiveMap from './InteractiveMap';
 import { useToast } from '../hooks/use-toast';
 
@@ -54,6 +54,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
   const fetchAllData = useCallback(async () => {
     if (!isOpen) return;
     setIsLoading(true);
+    
+    // Ensure Supabase has the auth token before fetching data
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      const token = await currentUser.getIdToken(true); // Force refresh token
+      await setSupabaseAuthToken(token);
+    } else {
+        // Not logged in, can't fetch admin data.
+        toast({ title: "Não autenticado", description: "Você não está logado para ver os dados do painel.", variant: "destructive"});
+        setIsLoading(false);
+        return;
+    }
+
     try {
       const [currentSettings, giftsData, rsvpsData] = await Promise.all([
         getSettings(),

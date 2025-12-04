@@ -480,11 +480,11 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                         >
                           Confirmar
                         </button>
-                        <Link
+                         <Link
                           to="/lista-de-presentes"
-                          className="w-full inline-flex items-center justify-center bg-gold hover:bg-gold-dark text-white font-serif tracking-widest uppercase py-3 transition-all duration-300 shadow-md active:scale-95 text-sm"
+                          className="w-full inline-flex items-center justify-center bg-transparent border border-gold text-gold hover:bg-gold/10 font-serif tracking-widest uppercase py-3 transition-all duration-300 shadow-md active:scale-95 text-sm"
                         >
-                          Contribuir com Mimos
+                          Lista de Presentes
                         </Link>
                       </div>
                     </form>

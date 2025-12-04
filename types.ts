@@ -10,6 +10,17 @@ export interface RSVP {
   confirmedAt: string;
 }
 
+export interface Gift {
+  id: number;
+  created_at: string;
+  name: string;
+  price: number;
+  image_url: string;
+  is_reserved: boolean;
+  reserved_by_name?: string;
+  reserved_by_phone?: string;
+}
+
 export interface WeddingSettings {
   id?: number;
   groomName: string;

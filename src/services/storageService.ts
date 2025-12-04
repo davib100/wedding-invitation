@@ -1,9 +1,11 @@
 
-import { RSVP, WeddingSettings } from '../../types';
+import { RSVP, WeddingSettings, Gift } from '../../types';
 import { INITIAL_SETTINGS } from '../constants';
 import { supabase } from '../supabase';
 
 const SETTINGS_ID = 1; // Assuming a single row for settings with a fixed ID
+
+// --- Settings Functions ---
 
 export const getSettings = async (): Promise<WeddingSettings> => {
   try {
@@ -134,6 +136,9 @@ export const saveSettings = async (settings: Partial<WeddingSettings>): Promise<
   }
 };
 
+
+// --- RSVP Functions ---
+
 export const addRSVP = async (rsvpData: Omit<RSVP, 'id' | 'confirmedAt'>): Promise<void> => {
   try {
     const newRSVP = {
@@ -153,4 +158,56 @@ export const addRSVP = async (rsvpData: Omit<RSVP, 'id' | 'confirmedAt'>): Promi
     console.error('Exception in addRSVP:', error);
     throw error;
   }
+};
+
+
+// --- Gift Functions ---
+
+export const getGifts = async (): Promise<Gift[]> => {
+    try {
+        const { data, error } = await supabase.from('gifts').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        return data as Gift[];
+    } catch (error) {
+        console.error('Error fetching gifts:', error);
+        return [];
+    }
+};
+
+export const addGift = async (giftData: Omit<Gift, 'id' | 'created_at' | 'is_reserved'>): Promise<Gift | null> => {
+    try {
+        const { data, error } = await supabase.from('gifts').insert(giftData).select().single();
+        if (error) throw error;
+        return data as Gift;
+    } catch (error) {
+        console.error('Error adding gift:', error);
+        throw error;
+    }
+};
+
+export const deleteGift = async (id: number): Promise<void> => {
+    try {
+        const { error } = await supabase.from('gifts').delete().eq('id', id);
+        if (error) throw error;
+    } catch (error) {
+        console.error('Error deleting gift:', error);
+        throw error;
+    }
+};
+
+export const reserveGift = async (id: number, reservedByName: string, reservedByPhone: string): Promise<void> => {
+    try {
+        const { error } = await supabase
+            .from('gifts')
+            .update({
+                is_reserved: true,
+                reserved_by_name: reservedByName,
+                reserved_by_phone: reservedByPhone,
+            })
+            .eq('id', id);
+        if (error) throw error;
+    } catch (error) {
+        console.error('Error reserving gift:', error);
+        throw error;
+    }
 };

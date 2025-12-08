@@ -473,19 +473,13 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
                          </div>
                       )}
                       
-                      <div className="flex flex-col sm:flex-row-reverse gap-4 pt-4">
+                      <div className="flex justify-center pt-4">
                         <button 
                           type="submit"
-                          className="w-full bg-gold text-white font-serif tracking-widest uppercase py-3 hover:bg-gold-dark transition-all duration-300 shadow-md active:scale-95"
+                          className="w-full sm:w-auto bg-gold text-white font-serif tracking-widest uppercase py-3 px-12 hover:bg-gold-dark transition-all duration-300 shadow-md active:scale-95"
                         >
                           Confirmar
                         </button>
-                         <Link
-                          to="/lista-de-presentes"
-                          className="w-full inline-flex items-center justify-center bg-transparent border border-gold text-gold hover:bg-gold/10 font-serif tracking-widest uppercase py-3 transition-all duration-300 shadow-md active:scale-95 text-sm"
-                        >
-                          Lista de Presentes
-                        </Link>
                       </div>
                     </form>
                   )}

@@ -358,7 +358,7 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
              {isRsvpOpen ? 'Fechar' : 'Confirmar Presença'}
            </button>
 
-           <div className={`transition-all duration-500 ease-in-out overflow-hidden w-full max-w-lg ${isRsvpOpen ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
+           <div className={`transition-all duration-500 ease-in-out overflow-hidden w-full max-w-lg ${isRsvpOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
               <div className="bg-paper/80 backdrop-blur-sm mt-4 w-full mx-auto rounded-lg shadow-2xl p-6 sm:p-8 border border-gold/30">
                 <div className="relative z-10 text-center">
                   {isSubmitted ? (

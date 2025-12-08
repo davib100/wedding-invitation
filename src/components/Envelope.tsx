@@ -51,49 +51,51 @@ export const Envelope: React.FC<EnvelopeProps> = ({ onOpen }) => {
               zIndex: flapFullyOpen ? 25 : 15
             }}
           >
+             {/* SVG com gradiente verde oliva */}
              <div className="relative w-48 h-48 md:w-56 md:h-56 -mt-8 opacity-80">
               <svg className="w-full h-full" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
                 <defs>
-                  <linearGradient id="luxuryGold" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#BF953F" />
-                    <stop offset="25%" stopColor="#FCF6BA" />
-                    <stop offset="50%" stopColor="#B38728" />
-                    <stop offset="75%" stopColor="#FBF5B7" />
-                    <stop offset="100%" stopColor="#AA771C" />
+                  {/* Gradiente verde oliva com efeito brilhante */}
+                  <linearGradient id="luxuryOlive" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#4a4630" />
+                    <stop offset="25%" stopColor="#8a8a5f" />
+                    <stop offset="50%" stopColor="#5e5a3d" />
+                    <stop offset="75%" stopColor="#9b9b6f" />
+                    <stop offset="100%" stopColor="#3d3a28" />
                   </linearGradient>
-                  <filter id="goldEmboss" x="-20%" y="-20%" width="140%" height="140%">
+                  <filter id="oliveEmboss" x="-20%" y="-20%" width="140%" height="140%">
                     <feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur"/>
                     <feSpecularLighting in="blur" surfaceScale="2" specularConstant="0.8" specularExponent="15" lightingColor="#FFF" result="specOut">
                       <fePointLight x="-5000" y="-10000" z="20000"/>
                     </feSpecularLighting>
                     <feComposite in="specOut" in2="SourceAlpha" operator="in" result="specOut"/>
                     <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litPaint"/>
-                     <feDropShadow dx="0.5" dy="1" stdDeviation="1" floodColor="#3e2b06" floodOpacity="0.3"/>
+                     <feDropShadow dx="0.5" dy="1" stdDeviation="1" floodColor="#1a1810" floodOpacity="0.3"/>
                   </filter>
                 </defs>
 
-                <g filter="url(#goldEmboss)">
-                  <circle cx="200" cy="200" r="130" fill="none" stroke="url(#luxuryGold)" strokeWidth="1" />
-                  <circle cx="200" cy="200" r="122" fill="none" stroke="url(#luxuryGold)" strokeWidth="3" strokeDasharray="1, 8" strokeLinecap="round" />
-                  <line x1="152" y1="260" x2="248" y2="140" stroke="url(#luxuryGold)" strokeWidth="1.5" strokeLinecap="square" />
+                <g filter="url(#oliveEmboss)">
+                  <circle cx="200" cy="200" r="130" fill="none" stroke="url(#luxuryOlive)" strokeWidth="1" />
+                  <circle cx="200" cy="200" r="122" fill="none" stroke="url(#luxuryOlive)" strokeWidth="3" strokeDasharray="1, 8" strokeLinecap="round" />
+                  <line x1="152" y1="260" x2="248" y2="140" stroke="url(#luxuryOlive)" strokeWidth="1.5" strokeLinecap="square" />
                 </g>
 
                 <g>
                   <text x="145" y="190" 
                         textAnchor="middle" 
                         dominantBaseline="middle"
-                        fill="url(#luxuryGold)" 
+                        fill="url(#luxuryOlive)" 
                         style={{ fontStyle: 'italic', fontFamily: '"Times New Roman", serif', fontSize: '100px', fontWeight: '400', letterSpacing: '-2px' }}
-                        filter="url(#goldEmboss)">
+                        filter="url(#oliveEmboss)">
                     R
                   </text>
 
                   <text x="255" y="220" 
                         textAnchor="middle" 
                         dominantBaseline="middle"
-                        fill="url(#luxuryGold)" 
+                        fill="url(#luxuryOlive)" 
                         style={{ fontStyle: 'italic', fontFamily: '"Times New Roman", serif', fontSize: '100px', fontWeight: '400', letterSpacing: '-2px' }}
-                        filter="url(#goldEmboss)">
+                        filter="url(#oliveEmboss)">
                     D
                   </text>
                 </g>
@@ -130,17 +132,19 @@ export const Envelope: React.FC<EnvelopeProps> = ({ onOpen }) => {
             <div className="absolute inset-0 bg-[#e8e4da] rotate-x-180 backface-hidden" style={{ clipPath: 'polygon(-70% 0, 50% 75%, 170% 0)' }}></div>
           </div>
 
-          <div 
-            onClick={handleOpen}
-            className={`absolute top-[48%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 cursor-pointer transition-all duration-500 group ${isOpen ? 'opacity-0 scale-150 pointer-events-none' : 'hover:scale-105'}`}
-          >
-             <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-wax-red-light to-wax-red shadow-[0_4px_10px_rgba(0,0,0,0.4)] flex items-center justify-center border-4 border-wax-red/50">
-                <div className="absolute inset-0 rounded-full border border-white/10"></div>
-                <div className="absolute inset-1 rounded-full border border-black/10"></div>
-                <span className="font-script text-2xl sm:text-3xl text-[#e8cba5] drop-shadow-md select-none group-hover:text-white transition-colors">R&D</span>
-             </div>
-             <div className="absolute inset-0 rounded-full bg-wax-red/30 animate-ping -z-10"></div>
-          </div>
+          {/* Selo de cera com texto branco */}
+<div 
+  onClick={handleOpen}
+  className={`absolute top-[48%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 cursor-pointer transition-all duration-500 group ${isOpen ? 'opacity-0 scale-150 pointer-events-none' : 'hover:scale-105'}`}
+>
+   <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-wax-red-light to-wax-red shadow-[0_4px_10px_rgba(0,0,0,0.4)] flex items-center justify-center border-4 border-wax-red/50">
+      <div className="absolute inset-0 rounded-full border border-white/10"></div>
+      <div className="absolute inset-1 rounded-full border border-black/10"></div>
+      <span className="font-script text-2xl sm:text-3xl drop-shadow-md select-none text-white">R&D</span>
+   </div>
+   <div className="absolute inset-0 rounded-full bg-wax-red/30 animate-ping -z-10"></div>
+</div>
+
 
         </div>
       </div>

@@ -243,7 +243,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
             </div>
             <div className="flex gap-1 overflow-x-auto pb-2">
               <Button variant={view === 'general' ? 'secondary' : 'ghost'} size="sm" className="shrink-0" onClick={() => setView('general')}><Info className="mr-2 h-4 w-4"/> Gerais</Button>
-              <Button variant={view === 'event' ? 'secondary' : 'ghost'} size="sm" className="shrink-0" onClick={()={() => setView('event')}><MapPin className="mr-2 h-4 w-4"/> Evento</Button>
+              <Button variant={view === 'event' ? 'secondary' : 'ghost'} size="sm" className="shrink-0" onClick={() => setView('event')}><MapPin className="mr-2 h-4 w-4"/> Evento</Button>
               <Button variant={view === 'personalization' ? 'secondary' : 'ghost'} size="sm" className="shrink-0" onClick={() => setView('personalization')}><Palette className="mr-2 h-4 w-4"/> Personalização</Button>
               <Button variant={view === 'rsvps' ? 'secondary' : 'ghost'} size="sm" className="shrink-0" onClick={() => setView('rsvps')}><ListChecks className="mr-2 h-4 w-4"/> Convidados</Button>
               <Button variant={view === 'gifts' ? 'secondary' : 'ghost'} size="sm" className="shrink-0" onClick={() => setView('gifts')}><GiftIcon className="mr-2 h-4 w-4"/> Presentes</Button>

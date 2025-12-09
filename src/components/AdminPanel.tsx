@@ -26,12 +26,12 @@ interface AdminPanelProps {
 type AdminView = 'general' | 'event' | 'personalization' | 'rsvps' | 'gifts';
 
 const Card: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className }) => (
-  <div className={cn("bg-white/50 p-6 rounded-lg shadow-sm border border-gold/20", className)}>{children}</div>
+  <div className={cn("bg-white/50 p-4 md:p-6 rounded-lg shadow-sm border border-gold/20", className)}>{children}</div>
 );
 
-const CardHeader: React.FC<{ children: React.ReactNode }> = ({ children }) => <div className="mb-6">{children}</div>;
-const CardTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => <h3 className="text-2xl font-semibold font-serif text-ink">{children}</h3>;
-const CardContent: React.FC<{ children: React.ReactNode }> = ({ children }) => <div className="space-y-6">{children}</div>;
+const CardHeader: React.FC<{ children: React.ReactNode }> = ({ children }) => <div className="mb-4 md:mb-6">{children}</div>;
+const CardTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => <h3 className="text-xl md:text-2xl font-semibold font-serif text-ink">{children}</h3>;
+const CardContent: React.FC<{ children: React.ReactNode }> = ({ children }) => <div className="space-y-4 md:space-y-6">{children}</div>;
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpdate }) => {
   const [settings, setSettings] = useState<Partial<WeddingSettings>>({});
@@ -55,13 +55,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     if (!isOpen) return;
     setIsLoading(true);
     
-    // Ensure Supabase has the auth token before fetching data
     const currentUser = auth.currentUser;
     if (currentUser) {
-      const token = await currentUser.getIdToken(true); // Force refresh token
+      const token = await currentUser.getIdToken(true);
       await setSupabaseAuthToken(token);
     } else {
-        // Not logged in, can't fetch admin data.
         toast({ title: "Não autenticado", description: "Você não está logado para ver os dados do painel.", variant: "destructive"});
         setIsLoading(false);
         return;
@@ -97,20 +95,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
 
     if (!isOpen) return;
     
-    const rsvpsChannel = supabase
-      .channel('rsvps-changes')
+    const channel = supabase
+      .channel('admin-panel-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'rsvps' }, () => fetchAllData())
-      .subscribe();
-
-    const giftsChannel = supabase
-      .channel('gifts-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gifts' }, () => fetchAllData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, () => fetchAllData())
       .subscribe();
       
     return () => {
-      supabase.removeChannel(rsvpsChannel);
-      supabase.removeChannel(giftsChannel);
+      supabase.removeChannel(channel);
     };
   }, [isOpen, fetchAllData]);
 
@@ -156,7 +149,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
         description: "As configurações foram salvas.",
         className: "bg-paper border-green-300 text-green-800",
       });
-      onSettingsUpdate(); // Notify App.tsx to refetch
+      onSettingsUpdate();
     } catch (error: any) {
       console.error("Failed to save settings:", error);
       toast({
@@ -218,11 +211,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
 
   const navigationButtons = (
     <>
-      <Button variant={view === 'general' ? 'secondary' : 'ghost'} className="justify-start w-full" onClick={() => setView('general')}><Info className="mr-2 h-4 w-4"/> Gerais</Button>
-      <Button variant={view === 'event' ? 'secondary' : 'ghost'} className="justify-start w-full" onClick={() => setView('event')}><MapPin className="mr-2 h-4 w-4"/> Evento</Button>
-      <Button variant={view === 'personalization' ? 'secondary' : 'ghost'} className="justify-start w-full" onClick={() => setView('personalization')}><Palette className="mr-2 h-4 w-4"/> Personalização</Button>
-      <Button variant={view === 'rsvps' ? 'secondary' : 'ghost'} className="justify-start w-full" onClick={() => setView('rsvps')}><ListChecks className="mr-2 h-4 w-4"/> Convidados</Button>
-      <Button variant={view === 'gifts' ? 'secondary' : 'ghost'} className="justify-start w-full" onClick={() => setView('gifts')}><GiftIcon className="mr-2 h-4 w-4"/> Presentes</Button>
+      <Button variant={view === 'general' ? 'secondary' : 'ghost'} className="justify-start w-full text-left" onClick={() => setView('general')}><Info className="mr-2 h-4 w-4"/> <span className='truncate'>Gerais</span></Button>
+      <Button variant={view === 'event' ? 'secondary' : 'ghost'} className="justify-start w-full text-left" onClick={() => setView('event')}><MapPin className="mr-2 h-4 w-4"/> <span className='truncate'>Evento</span></Button>
+      <Button variant={view === 'personalization' ? 'secondary' : 'ghost'} className="justify-start w-full text-left" onClick={() => setView('personalization')}><Palette className="mr-2 h-4 w-4"/> <span className='truncate'>Personalização</span></Button>
+      <Button variant={view === 'rsvps' ? 'secondary' : 'ghost'} className="justify-start w-full text-left" onClick={() => setView('rsvps')}><ListChecks className="mr-2 h-4 w-4"/> <span className='truncate'>Convidados</span></Button>
+      <Button variant={view === 'gifts' ? 'secondary' : 'ghost'} className="justify-start w-full text-left" onClick={() => setView('gifts')}><GiftIcon className="mr-2 h-4 w-4"/> <span className='truncate'>Presentes</span></Button>
     </>
   );
 
@@ -230,7 +223,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 p-0 sm:p-4 animate-fade-in">
       <div className="container mx-auto bg-paper bg-paper-texture rounded-none sm:rounded-xl shadow-2xl h-full flex overflow-hidden border-0 sm:border border-gold/20">
         
-        <aside className="hidden sm:flex flex-col justify-between w-64 bg-paper-dark p-6 border-r border-gold/10">
+        <aside className="hidden md:flex flex-col justify-between w-56 lg:w-64 bg-paper-dark p-6 border-r border-gold/10">
           <div>
             <h2 className="text-2xl font-bold text-gold-dark font-serif mb-8">Painel</h2>
             <nav className="flex flex-col gap-2">
@@ -241,20 +234,24 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
         </aside>
 
         <div className="flex-1 flex flex-col">
-          <header className="sm:hidden p-4 bg-paper-dark border-b border-gold/10">
-            <div className="flex justify-between items-center mb-4">
+          <header className="md:hidden p-2 bg-paper-dark border-b border-gold/10">
+            <div className="flex justify-between items-center mb-2 px-2">
               <h2 className="text-xl font-bold text-gold-dark font-serif">Painel</h2>
               <Button onClick={onClose} variant="ghost" size="icon" className="text-ink/60 hover:text-ink">
                 <X />
               </Button>
             </div>
-            <div className="flex justify-center gap-2">
-              {navigationButtons}
+            <div className="flex gap-1 overflow-x-auto pb-2">
+              <Button variant={view === 'general' ? 'secondary' : 'ghost'} size="sm" className="shrink-0" onClick={() => setView('general')}><Info className="mr-2 h-4 w-4"/> Gerais</Button>
+              <Button variant={view === 'event' ? 'secondary' : 'ghost'} size="sm" className="shrink-0" onClick={()={() => setView('event')}><MapPin className="mr-2 h-4 w-4"/> Evento</Button>
+              <Button variant={view === 'personalization' ? 'secondary' : 'ghost'} size="sm" className="shrink-0" onClick={() => setView('personalization')}><Palette className="mr-2 h-4 w-4"/> Personalização</Button>
+              <Button variant={view === 'rsvps' ? 'secondary' : 'ghost'} size="sm" className="shrink-0" onClick={() => setView('rsvps')}><ListChecks className="mr-2 h-4 w-4"/> Convidados</Button>
+              <Button variant={view === 'gifts' ? 'secondary' : 'ghost'} size="sm" className="shrink-0" onClick={() => setView('gifts')}><GiftIcon className="mr-2 h-4 w-4"/> Presentes</Button>
             </div>
           </header>
 
           <main className="flex-1 overflow-y-auto relative">
-            <Button onClick={onClose} variant="ghost" size="icon" className="absolute top-4 right-4 text-ink/60 hover:text-ink z-10 hidden sm:inline-flex">
+            <Button onClick={onClose} variant="ghost" size="icon" className="absolute top-4 right-4 text-ink/60 hover:text-ink z-10 hidden md:inline-flex">
               <X />
             </Button>
 
@@ -262,13 +259,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
               <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-gold" /></div>
             ) : (
               <form onSubmit={handleSettingsSubmit} className="h-full flex flex-col">
-                <div className="flex-grow p-4 sm:p-8 space-y-8 pb-24">
+                <div className="flex-grow p-4 md:p-8 space-y-8 pb-24">
                   {view === 'general' && (
                     <div className="animate-fade-in space-y-8">
                       <Card>
                         <CardHeader><CardTitle>Informações dos Noivos</CardTitle></CardHeader>
                         <CardContent>
-                          <div className="grid sm:grid-cols-2 gap-6">
+                          <div className="grid md:grid-cols-2 gap-6">
                             <div>
                               <Label htmlFor="groomName">Nome do Noivo</Label>
                               <Input id="groomName" name="groomName" value={settings.groomName || ''} onChange={handleSettingsChange} />
@@ -336,88 +333,36 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                         <CardContent>
                           <div>
                             <Label htmlFor="eventLocation">Nome do Local</Label>
-                            <Input 
-                              id="eventLocation" 
-                              name="eventLocation" 
-                              value={settings.eventLocation || ''} 
-                              onChange={handleSettingsChange} 
-                              placeholder="Ex: Villa Giardini"
-                            />
+                            <Input id="eventLocation" name="eventLocation" value={settings.eventLocation || ''} onChange={handleSettingsChange} placeholder="Ex: Villa Giardini" />
                           </div>
                           <div>
                             <Label htmlFor="eventAddress">Endereço do Evento</Label>
-                            <Textarea 
-                              id="eventAddress" 
-                              name="eventAddress" 
-                              value={settings.eventAddress || ''} 
-                              onChange={handleSettingsChange} 
-                              placeholder="Ex: St. de Mansões Park Way Q 3 - Núcleo Bandeirante, Brasília - DF"
-                            />
+                            <Textarea id="eventAddress" name="eventAddress" value={settings.eventAddress || ''} onChange={handleSettingsChange} placeholder="Ex: St. de Mansões Park Way Q 3 - Núcleo Bandeirante, Brasília - DF" />
                           </div>
                           <div>
                             <Label htmlFor="eventAddressReference">Ponto de Referência</Label>
-                            <Input 
-                              id="eventAddressReference" 
-                              name="eventAddressReference" 
-                              value={settings.eventAddressReference || ''} 
-                              onChange={handleSettingsChange} 
-                              placeholder="Ex: Próximo à ponte"
-                            />
+                            <Input id="eventAddressReference" name="eventAddressReference" value={settings.eventAddressReference || ''} onChange={handleSettingsChange} placeholder="Ex: Próximo à ponte" />
                           </div>
                           <div>
                             <Label>Coordenadas do Mapa</Label>
                             <div className="grid grid-cols-2 gap-4 mb-4">
                               <div>
                                 <Label htmlFor="mapLat" className="text-xs">Latitude</Label>
-                                <Input 
-                                  id="mapLat"
-                                  type="number"
-                                  step="any"
-                                  name="lat"
-                                  value={settings.mapCoordinates?.lat || ''}
-                                  onChange={(e) => setSettings(prev => ({
-                                    ...prev,
-                                    mapCoordinates: {
-                                      lat: parseFloat(e.target.value) || 0,
-                                      lng: prev.mapCoordinates?.lng || 0
-                                    }
-                                  }))}
-                                  placeholder="-15.7801"
-                                />
+                                <Input id="mapLat" type="number" step="any" name="lat" value={settings.mapCoordinates?.lat || ''} onChange={(e) => setSettings(prev => ({ ...prev, mapCoordinates: { lat: parseFloat(e.target.value) || 0, lng: prev.mapCoordinates?.lng || 0 } }))} placeholder="-15.7801" />
                               </div>
                               <div>
                                 <Label htmlFor="mapLng" className="text-xs">Longitude</Label>
-                                <Input 
-                                  id="mapLng"
-                                  type="number"
-                                  step="any"
-                                  name="lng"
-                                  value={settings.mapCoordinates?.lng || ''}
-                                  onChange={(e) => setSettings(prev => ({
-                                    ...prev,
-                                    mapCoordinates: {
-                                      lat: prev.mapCoordinates?.lat || 0,
-                                      lng: parseFloat(e.target.value) || 0
-                                    }
-                                  }))}
-                                  placeholder="-47.9292"
-                                />
+                                <Input id="mapLng" type="number" step="any" name="lng" value={settings.mapCoordinates?.lng || ''} onChange={(e) => setSettings(prev => ({ ...prev, mapCoordinates: { lat: prev.mapCoordinates?.lat || 0, lng: parseFloat(e.target.value) || 0 } }))} placeholder="-47.9292" />
                               </div>
                             </div>
                             <Label>Clique no mapa para definir a localização</Label>
-                            {settings.mapCoordinates && (
+                            {settings.mapCoordinates ? (
                               <InteractiveMap 
                                 coordinates={settings.mapCoordinates}
-                                onMapClick={(coords) => setSettings(prev => ({
-                                  ...prev,
-                                  mapCoordinates: coords
-                                }))}
+                                onMapClick={(coords) => setSettings(prev => ({ ...prev, mapCoordinates: coords }))}
                               />
-                            )}
-                            {!settings.mapCoordinates && (
-                              <div className="bg-gray-100 h-[400px] flex items-center justify-center text-gray-500 rounded border border-dashed">
-                                Digite as coordenadas acima ou clique no mapa
-                              </div>
+                            ) : (
+                              <div className="bg-gray-100 h-[400px] flex items-center justify-center text-gray-500 rounded border border-dashed"> Digite as coordenadas acima para exibir o mapa </div>
                             )}
                           </div>
                         </CardContent>
@@ -431,27 +376,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                         <CardContent>
                           <div>
                             <Label htmlFor="colorPaletteText">Texto da Paleta</Label>
-                            <Input
-                              id="colorPaletteText"
-                              name="colorPaletteText"
-                              value={settings.colorPaletteText || ''}
-                              onChange={handleSettingsChange}
-                              placeholder="Ex: Terracota & Verde Oliva"
-                            />
+                            <Input id="colorPaletteText" name="colorPaletteText" value={settings.colorPaletteText || ''} onChange={handleSettingsChange} placeholder="Ex: Terracota & Verde Oliva" />
                           </div>
                           <div>
                             <Label>Cores</Label>
-                            <div className="flex items-center gap-4 mt-2">
+                            <div className="flex items-center gap-4 mt-2 flex-wrap">
                               {(settings.colorPalette || []).map((color, index) => (
                                 <div key={index} className="flex flex-col items-center gap-2">
                                   <Label htmlFor={`color-${index}`} className="text-xs">Cor {index + 1}</Label>
-                                  <Input
-                                    id={`color-${index}`}
-                                    type="color"
-                                    value={color}
-                                    onChange={(e) => handleColorPaletteChange(index, e.target.value)}
-                                    className="w-16 h-16 p-1"
-                                  />
+                                  <Input id={`color-${index}`} type="color" value={color} onChange={(e) => handleColorPaletteChange(index, e.target.value)} className="w-16 h-16 p-1" />
                                 </div>
                               ))}
                             </div>
@@ -463,14 +396,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                   {view === 'rsvps' && (
                     <div className="animate-fade-in">
                       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
-                        <h2 className="text-3xl font-semibold font-serif text-ink">Lista de Convidados</h2>
+                        <h2 className="text-2xl md:text-3xl font-semibold font-serif text-ink">Lista de Convidados</h2>
                         <div className='text-right border border-gold/20 p-3 rounded-lg bg-white/40 shrink-0'>
                           <p className='font-bold text-xl text-gold-dark'>{rsvps.length} confirmações</p>
                           <p className='text-sm text-ink/70'>{totalGuests} pessoas no total</p>
                         </div>
                       </div>
-                      <div className="overflow-x-auto bg-white/50 shadow-sm rounded-lg border border-gold/20">
-                        <table className="w-full text-sm">
+                      
+                      {/* Responsive Table/Card List for RSVPs */}
+                      <div className="md:bg-white/50 md:shadow-sm md:rounded-lg md:border md:border-gold/20 overflow-hidden">
+                        <table className="w-full text-sm hidden md:table">
                           <thead className="bg-paper-dark text-left">
                             <tr>
                               {['Nome', 'Acompanhante', 'Crianças', 'Telefone'].map(h => 
@@ -487,11 +422,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                                 <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap">{rsvp.phone}</td>
                               </tr>
                             ))}
-                            {rsvps.length === 0 && (
-                              <tr><td colSpan={4} className="text-center py-12 font-sans text-ink/50">Nenhuma confirmação ainda.</td></tr>
-                            )}
                           </tbody>
                         </table>
+                        <div className="space-y-4 md:hidden">
+                          {rsvps.map(rsvp => (
+                            <div key={rsvp.id} className="bg-white/50 p-4 rounded-lg shadow-sm border border-gold/20">
+                              <p className="font-sans font-semibold text-ink-light">{rsvp.firstName} {rsvp.lastName}</p>
+                              <p className="font-sans text-sm text-ink/70">{rsvp.phone}</p>
+                              <div className="mt-2 pt-2 border-t border-gold/10 text-sm space-y-1">
+                                <p><span className="font-semibold">Cônjuge:</span> {rsvp.hasSpouse ? rsvp.spouseName : 'Não'}</p>
+                                <p><span className="font-semibold">Crianças:</span> {rsvp.hasChildren ? rsvp.childrenCount : 'Não'}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                         {rsvps.length === 0 && (
+                          <div className="text-center py-12 font-sans text-ink/50">Nenhuma confirmação ainda.</div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -499,7 +446,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                     <div className="animate-fade-in space-y-8">
                        <Card>
                         <CardHeader>
-                          <div className='flex justify-between items-start'>
+                          <div className='flex flex-col sm:flex-row justify-between sm:items-start gap-2'>
                             <div>
                               <CardTitle>Gerenciar Presentes</CardTitle>
                               <p className='text-ink/70 font-sans text-sm mt-1'>Adicione ou remova itens da lista de presentes. ({gifts.length}/12)</p>
@@ -509,32 +456,35 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                         </CardHeader>
                         <CardContent>
                           {gifts.length < 12 && (
-                             <form onSubmit={handleAddGift} className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end p-4 border border-dashed rounded-lg">
-                                <div className='sm:col-span-2'>
+                             <form onSubmit={handleAddGift} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end p-4 border border-dashed rounded-lg">
+                                <div className='sm:col-span-2 lg:col-span-1'>
                                   <Label htmlFor="giftName">Nome do Presente</Label>
-                                  <Input id="giftName" name="name" value={newGift.name} onChange={handleGiftInputChange} placeholder="Ex: Conjunto de Panelas" />
+                                  <Input id="giftName" name="name" value={newGift.name} onChange={handleGiftInputChange} placeholder="Ex: Jogo de Panelas" />
                                 </div>
-                                <div>
-                                  <Label htmlFor="giftPrice">Preço (R$)</Label>
-                                  <Input id="giftPrice" name="price" value={newGift.price} onChange={handleGiftInputChange} placeholder="Ex: 499,90" />
-                                </div>
-                                <div>
-                                  <Label htmlFor="giftQuantity">Quantidade</Label>
-                                  <Input id="giftQuantity" name="quantity" type="number" value={newGift.quantity} onChange={handleGiftInputChange} placeholder="1" min="1" />
-                                </div>
-                                <div className='sm:col-span-5'>
+                                <div className='lg:col-span-2'>
                                   <Label htmlFor="giftImage">URL da Imagem (Opcional)</Label>
                                   <Input id="giftImage" name="image_url" value={newGift.image_url} onChange={handleGiftInputChange} placeholder="https://exemplo.com/imagem.jpg" />
                                 </div>
+                                <div className='grid grid-cols-2 gap-4 items-end'>
+                                   <div>
+                                    <Label htmlFor="giftPrice">Preço (R$)</Label>
+                                    <Input id="giftPrice" name="price" value={newGift.price} onChange={handleGiftInputChange} placeholder="499,90" />
+                                  </div>
+                                  <div>
+                                    <Label htmlFor="giftQuantity">Quantidade</Label>
+                                    <Input id="giftQuantity" name="quantity" type="number" value={newGift.quantity} onChange={handleGiftInputChange} placeholder="1" min="1" />
+                                  </div>
+                                </div>
                               </form>
                           )}
-                          <div className="overflow-x-auto bg-white/50 shadow-sm rounded-lg border border-gold/20 mt-6">
-                            <table className="w-full text-sm">
+                           <div className="md:bg-white/50 md:shadow-sm md:rounded-lg md:border md:border-gold/20 overflow-hidden mt-6">
+                            <table className="w-full text-sm hidden md:table">
                               <thead className="bg-paper-dark text-left">
                                 <tr>
-                                  {['Presente', 'Preço', 'Reservas', ''].map(h => 
-                                    <th key={h} className="py-3 px-4 border-b border-gold/20 text-ink font-serif font-semibold whitespace-nowrap">{h}</th>
-                                  )}
+                                  <th className="py-3 px-4 border-b border-gold/20 text-ink font-serif font-semibold whitespace-nowrap">Presente</th>
+                                  <th className="py-3 px-4 border-b border-gold/20 text-ink font-serif font-semibold whitespace-nowrap">Preço</th>
+                                  <th className="py-3 px-4 border-b border-gold/20 text-ink font-serif font-semibold whitespace-nowrap">Reservas</th>
+                                  <th className="py-3 px-4 border-b border-gold/20"></th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -552,26 +502,43 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                                         <div className='flex flex-col'>
                                            <span className={cn('font-semibold', isFullyReserved ? 'text-red-500' : 'text-green-600')}>{reservedCount} / {gift.quantity}</span>
                                            <div className='w-full bg-gray-200 rounded-full h-1.5 mt-1'>
-                                            <div 
-                                              className={cn('h-1.5 rounded-full', isFullyReserved ? 'bg-red-400' : 'bg-green-500')} 
-                                              style={{width: `${(reservedCount / gift.quantity) * 100}%`}}>
-                                            </div>
+                                            <div className={cn('h-1.5 rounded-full', isFullyReserved ? 'bg-red-400' : 'bg-green-500')} style={{width: `${(reservedCount / gift.quantity) * 100}%`}}></div>
                                            </div>
                                         </div>
                                       </td>
-                                      <td className="py-3 px-4 border-b border-gold/10 font-sans text-ink-light whitespace-nowrap text-right">
-                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteGift(gift.id)} className="text-red-500 hover:bg-red-100 hover:text-red-700">
-                                          <Trash2 size={16} />
-                                        </Button>
+                                      <td className="py-3 px-4 border-b border-gold/10 text-right">
+                                        <Button variant="ghost" size="icon" onClick={() => handleDeleteGift(gift.id)} className="text-red-500 hover:bg-red-100 hover:text-red-700"><Trash2 size={16} /></Button>
                                       </td>
                                     </tr>
                                   )
                                 })}
-                                {gifts.length === 0 && (
-                                  <tr><td colSpan={4} className="text-center py-12 font-sans text-ink/50">Nenhum presente cadastrado.</td></tr>
-                                )}
                               </tbody>
                             </table>
+                             <div className="space-y-4 md:hidden">
+                              {gifts.map(gift => {
+                                const reservedCount = gift.reservations?.length || 0;
+                                const isFullyReserved = reservedCount >= gift.quantity;
+                                return (
+                                <div key={gift.id} className={cn('bg-white/50 p-4 rounded-lg shadow-sm border border-gold/20 flex gap-4 items-start', isFullyReserved ? 'opacity-60' : '')}>
+                                  {gift.image_url && <img src={gift.image_url} alt={gift.name} className='w-20 h-20 object-cover rounded-md'/>}
+                                  <div className="flex-grow">
+                                    <p className="font-sans font-semibold text-ink-light leading-tight">{gift.name}</p>
+                                    <p className="font-sans text-sm text-ink/80 mt-1">R$ {gift.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                                    <div className='flex flex-col mt-2'>
+                                       <span className={cn('font-semibold text-sm', isFullyReserved ? 'text-red-500' : 'text-green-600')}>{reservedCount} de {gift.quantity}</span>
+                                       <div className='w-full bg-gray-200 rounded-full h-1.5 mt-1'>
+                                        <div className={cn('h-1.5 rounded-full', isFullyReserved ? 'bg-red-400' : 'bg-green-500')} style={{width: `${(reservedCount / gift.quantity) * 100}%`}}></div>
+                                       </div>
+                                    </div>
+                                  </div>
+                                  <Button variant="ghost" size="icon" onClick={() => handleDeleteGift(gift.id)} className="text-red-500 hover:bg-red-100 hover:text-red-700 shrink-0"><Trash2 size={16} /></Button>
+                                </div>
+                                )
+                              })}
+                            </div>
+                            {gifts.length === 0 && (
+                              <div className="text-center py-12 font-sans text-ink/50">Nenhum presente cadastrado.</div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>

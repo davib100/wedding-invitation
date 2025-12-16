@@ -593,6 +593,23 @@ export const InvitationContent: React.FC<InvitationContentProps> = ({ settings, 
            </div>
         </div>
 
+        {settings.showGiftList && (
+          <section className="w-full text-center py-8">
+            <Link
+              to="/lista-de-presentes"
+              className="inline-block font-serif text-base md:text-lg px-8 py-3 md:px-10 md:py-4 rounded-full transition-all duration-300 tracking-widest uppercase shadow-[0_4px_20px_rgba(0,0,0,0.2)] hover:scale-105 border"
+              style={{
+                backgroundColor: 'transparent',
+                borderColor: OLIVE_GOLD,
+                color: OLIVE_GOLD,
+                boxShadow: `0 4px 20px ${OLIVE_GOLD}33`
+              }}
+            >
+              Mimos e Presentes
+            </Link>
+          </section>
+        )}
+
         <footer className="w-full pt-10 pb-6 opacity-40">
            <p 
              onClick={handleFooterClick}

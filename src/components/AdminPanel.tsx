@@ -4,7 +4,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { Calendar as CalendarIcon, LogOut, ListChecks, Info, MapPin, X, Loader2, Save, Palette, Gift as GiftIcon, Trash2, PlusCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, LogOut, ListChecks, Info, MapPin, X, Loader2, Save, Palette, Gift as GiftIcon, Trash2, PlusCircle, ToggleRight, ToggleLeft, Music } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { WeddingSettings, RSVP, Gift } from '../../types';
 import { saveSettings, getSettings, getGifts, addGift, deleteGift } from '../services/storageService';
@@ -371,6 +371,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                   )}
                   {view === 'personalization' && (
                     <div className="animate-fade-in space-y-8">
+                       <Card>
+                        <CardHeader><CardTitle>Aparência</CardTitle></CardHeader>
+                        <CardContent>
+                           <div>
+                              <Label htmlFor="musicUrl">Música de Fundo (URL)</Label>
+                              <div className="flex items-center gap-2">
+                                <Music className="text-ink/50" />
+                                <Input id="musicUrl" name="musicUrl" value={settings.musicUrl || ''} onChange={handleSettingsChange} placeholder="https://exemplo.com/musica.mp3" />
+                              </div>
+                              <p className="text-xs text-ink/50 mt-2">Cole aqui o link direto para um arquivo de áudio (ex: .mp3). Use links de serviços como o <a href="https://pixabay.com/music/" target="_blank" rel="noopener noreferrer" className="underline">Pixabay Music</a>.</p>
+                            </div>
+                        </CardContent>
+                      </Card>
                       <Card>
                         <CardHeader><CardTitle>Paleta de Cores</CardTitle></CardHeader>
                         <CardContent>
@@ -446,12 +459,31 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                     <div className="animate-fade-in space-y-8">
                        <Card>
                         <CardHeader>
-                          <div className='flex flex-col sm:flex-row justify-between sm:items-start gap-2'>
+                          <div className='flex flex-col sm:flex-row justify-between sm:items-start gap-4'>
                             <div>
                               <CardTitle>Gerenciar Presentes</CardTitle>
                               <p className='text-ink/70 font-sans text-sm mt-1'>Adicione ou remova itens da lista de presentes. ({gifts.length}/12)</p>
                             </div>
-                            <Button size="sm" onClick={handleAddGift} disabled={gifts.length >= 12}><PlusCircle className="mr-2" /> Adicionar</Button>
+                            <div className='flex items-center gap-2 bg-paper-dark p-2 rounded-lg border border-gold/10'>
+                                <Label htmlFor="showGiftListToggle" className='font-sans text-sm text-ink/80'>Exibir no convite</Label>
+                                <button
+                                    id="showGiftListToggle"
+                                    type="button"
+                                    onClick={() => setSettings(prev => ({...prev, showGiftList: !prev.showGiftList}))}
+                                    className={cn(
+                                        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2",
+                                        settings.showGiftList ? 'bg-gold' : 'bg-gray-300'
+                                    )}
+                                >
+                                    <span
+                                    aria-hidden="true"
+                                    className={cn(
+                                        "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                        settings.showGiftList ? 'translate-x-5' : 'translate-x-0'
+                                    )}
+                                    />
+                                </button>
+                            </div>
                           </div>
                         </CardHeader>
                         <CardContent>
@@ -475,6 +507,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                                     <Input id="giftQuantity" name="quantity" type="number" value={newGift.quantity} onChange={handleGiftInputChange} placeholder="1" min="1" />
                                   </div>
                                 </div>
+                                 <Button size="sm" onClick={handleAddGift} disabled={gifts.length >= 12} className='w-full sm:w-auto lg:col-start-4'><PlusCircle className="mr-2" /> Adicionar</Button>
                               </form>
                           )}
                            <div className="md:bg-white/50 md:shadow-sm md:rounded-lg md:border md:border-gold/20 overflow-hidden mt-6">
@@ -546,7 +579,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
                   )}
                 </div>
 
-                {view !== 'rsvps' && view !== 'gifts' && (
+                {view !== 'rsvps' && (
                   <div className="sticky bottom-0 bg-paper/80 backdrop-blur-sm p-4 border-t border-gold/10 flex justify-end">
                      <Button type="submit" size="lg" disabled={isSaving} className="bg-gold hover:bg-gold-dark text-white shadow-lg w-full sm:w-auto">
                       {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
@@ -564,5 +597,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose, onSettingsUpda
 };
 
 export default AdminPanel;
+
+    
 
     
